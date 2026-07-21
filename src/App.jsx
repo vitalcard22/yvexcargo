@@ -1462,8 +1462,19 @@ function useInView(threshold) {
     var el = ref.current;
     if (!el) return;
     var obs = new IntersectionObserver(function(entries){
-      entries.forEach(function(e){ if (e.isIntersecting) { setInView(true); obs.unobserve(el); } });
-    }, { threshold: threshold || 0.15 });
+      entries.forEach(function(e){
+        if (e.isIntersecting) {
+          // Double rAF guarantees at least one painted frame at opacity:0 first,
+          // so the transition is visible even when the element is already in
+          // view on initial page load (otherwise the browser can coalesce the
+          // 0->1 change into a single paint and it looks like nothing animated).
+          requestAnimationFrame(function(){
+            requestAnimationFrame(function(){ setInView(true); });
+          });
+          obs.unobserve(el);
+        }
+      });
+    }, { threshold: threshold || 0.15, rootMargin: "0px 0px -40px 0px" });
     obs.observe(el);
     return function(){ obs.disconnect(); };
   }, []);
@@ -1646,24 +1657,27 @@ function HomePage(props) {
         </div>
       </div>
 
-      <section style={{padding:"72px 20px",borderBottom:"1px solid var(--g2)"}}>
+      <section style={{padding:"88px 20px",borderBottom:"1px solid var(--g2)"}}>
         <div style={{maxWidth:1200,margin:"0 auto"}}>
           <Reveal>
             <div className="eyebrow-line"><span>Tracking Pipeline</span></div>
-            <h2 style={{fontSize:28,fontWeight:800,color:"#111",marginBottom:28}}>6-Stage Logistics Flow</h2>
+            <h2 style={{fontSize:28,fontWeight:800,color:"#111",marginBottom:40}}>Six stages, logged every time</h2>
           </Reveal>
-          <div style={{display:"flex",overflowX:"auto",gap:12}}>
-            {STATUS_FLOW.map(function(s,i){
-              return (
-                <Reveal key={s.key} delay={i*70} style={{flex:"1 0 130px"}}>
-                  <div style={{border:"1px solid var(--g3)",borderRadius:10,padding:"16px 14px",background:i===0?"var(--yp)":"#fff",height:"100%"}}>
-                    <div style={{fontSize:20,marginBottom:8}}>{s.icon}</div>
-                    <div style={{fontWeight:700,fontSize:10,color:"#111",textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:4}}>{s.label}</div>
-                    <div style={{fontSize:10,color:"#525252",lineHeight:1.5}}>{s.desc}</div>
-                  </div>
-                </Reveal>
-              );
-            })}
+          <div style={{position:"relative"}}>
+            <div style={{position:"absolute",top:13,left:0,right:0,height:1,background:"var(--g3)"}} />
+            <div style={{display:"flex",overflowX:"auto",gap:16,position:"relative"}}>
+              {STATUS_FLOW.map(function(s,i){
+                return (
+                  <Reveal key={s.key} delay={i*80} style={{flex:"1 0 150px"}}>
+                    <div>
+                      <div style={{width:27,height:27,borderRadius:"50%",background:i===0?"var(--y)":"#fff",border:"1.5px solid "+(i===0?"var(--y)":"var(--g3)"),display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#111",marginBottom:16}} className="mono">{i+1}</div>
+                      <div style={{fontWeight:700,fontSize:11,color:"#111",textTransform:"uppercase",letterSpacing:"0.07em",marginBottom:6}}>{s.label}</div>
+                      <div style={{fontSize:12,color:"#525252",lineHeight:1.65,paddingRight:10}}>{s.desc}</div>
+                    </div>
+                  </Reveal>
+                );
+              })}
+            </div>
           </div>
         </div>
       </section>
