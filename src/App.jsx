@@ -168,7 +168,7 @@ const Auth = {
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;}
-:root{--y:#f59e0b;--y2:#fbbf24;--yp:#fef3c7;--ypp:#fffbeb;--k:#111;--g2:#f4f4f4;--g3:#e5e5e5;--g4:#a3a3a3;--g5:#525252;}
+:root{--y:#f59e0b;--y2:#fbbf24;--yp:#fef3c7;--ypp:#fffbeb;--k:#111;--g2:#f4f4f4;--g3:#e5e5e5;--g4:#a3a3a3;--g5:#525252;--pu:#4d148c;--pu2:#6d28d9;}
 body{font-family:'Sora',sans-serif;background:#fff;color:#111;line-height:1.6;}
 button{cursor:pointer;font-family:inherit;border:none;outline:none;}
 input,select,textarea{font-family:inherit;outline:none;}
@@ -254,6 +254,21 @@ tr:last-child td{border-bottom:none;}
 .stars{color:var(--y);font-size:13px;letter-spacing:2px;margin-bottom:10px;}
 @media(prefers-reduced-motion:reduce){.reveal{transition:none;opacity:1;transform:none;}.ticker-track{animation:none;}}
 @media(max-width:720px){.hero-photo{height:280px;}.feat-photo{height:260px;}}
+
+.kb{animation:kb 14s ease-in-out infinite alternate;}
+@keyframes kb{from{transform:scale(1);}to{transform:scale(1.12);}}
+.hero-slide{position:absolute;inset:0;opacity:0;transition:opacity 1.1s ease;}
+.hero-slide.on{opacity:1;}
+.diag-band{position:relative;background:var(--pu);overflow:hidden;}
+.diag-band::before{content:"";position:absolute;top:0;bottom:0;left:60%;right:-10%;background:var(--y);transform:skewX(-18deg);}
+.diag-band::after{content:"";position:absolute;top:0;bottom:0;left:82%;right:-10%;background:#111;transform:skewX(-18deg);}
+.parallax-banner{position:relative;height:340px;overflow:hidden;border-top:2px solid #111;border-bottom:2px solid #111;}
+.parallax-banner img{position:absolute;inset:-10% 0;width:100%;height:120%;object-fit:cover;}
+.parallax-tint{position:absolute;inset:0;background:linear-gradient(100deg, rgba(77,20,140,.88) 0%, rgba(77,20,140,.55) 45%, rgba(245,158,11,.35) 100%);}
+.parallax-content{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:center;padding:0 20px;}
+.orange-tab{display:inline-flex;align-items:center;gap:8px;background:var(--y);color:#111;font-weight:800;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:6px 14px;border-radius:100px;width:fit-content;margin-bottom:14px;}
+.cta-diag{position:relative;background:var(--pu);overflow:hidden;}
+.cta-diag::before{content:"";position:absolute;top:-20%;bottom:-20%;left:-6%;width:38%;background:rgba(255,255,255,.06);transform:skewX(-18deg);}
 `;
 
 function YLogo(props) {
@@ -1423,10 +1438,10 @@ var TICKER_ITEMS = [
 function Ticker() {
   var items = TICKER_ITEMS.concat(TICKER_ITEMS);
   return (
-    <div className="ticker">
-      <div className="ticker-track">
+    <div className="ticker diag-band">
+      <div className="ticker-track" style={{position:"relative",zIndex:2}}>
         {items.map(function(it, i){
-          return <span key={i} className="mono ticker-item"><b>MANIFEST</b>{it}<span className="ticker-dot">\u25cf</span></span>;
+          return <span key={i} className="mono ticker-item"><b>MANIFEST</b>{it}<span className="ticker-dot">{"\u25cf"}</span></span>;
         })}
       </div>
     </div>
@@ -1456,9 +1471,20 @@ var TESTIMONIALS = [
   { name:"Priya Nair", role:"Operations Lead, Nair Home Goods", quote:"Switched from two carriers to one. Onboarding took a day, and our delivery disputes dropped by half in the first quarter.", photo:"1500648767791-00dcc994a43e", seed:"testimonial3" },
 ];
 
+var HERO_PHOTOS = [
+  { id:"1494412574745-6e39fc09b28d", seed:"herocontainers", alt:"Cargo containers at port" },
+  { id:"1578575437130-527eed3abbec", seed:"heroship", alt:"Cargo ship at sea" },
+  { id:"1436491865332-7a61a109cc05", seed:"heroplane", alt:"Cargo plane wing above clouds" },
+];
+
 function HomePage(props) {
   var setPage=props.setPage, setTrackId=props.setTrackId;
   var [t, setT] = useState("");
+  var [heroIdx, setHeroIdx] = useState(0);
+  useEffect(function(){
+    var iv = setInterval(function(){ setHeroIdx(function(i){ return (i+1) % HERO_PHOTOS.length; }); }, 4200);
+    return function(){ clearInterval(iv); };
+  }, []);
   return (
     <div className="fade">
       <Ticker />
@@ -1478,7 +1504,13 @@ function HomePage(props) {
             </div>
           </div>
           <div className="hero-photo">
-            <Photo id="1494412574745-6e39fc09b28d" seed="herocontainers" alt="Cargo containers at port" w={1000} h={860} />
+            {HERO_PHOTOS.map(function(p, i){
+              return (
+                <div key={p.id} className={"hero-slide" + (i===heroIdx ? " on" : "")}>
+                  <Photo id={p.id} seed={p.seed} alt={p.alt} w={1000} h={860} className={i===heroIdx ? "kb" : ""} style={{width:"100%",height:"100%",objectFit:"cover"}} />
+                </div>
+              );
+            })}
             <div className="stamp-badge">In Transit</div>
             <div className="float-track">
               <p style={{color:"#f59e0b",fontSize:10,fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:11}}>Quick Track</p>
@@ -1536,6 +1568,17 @@ function HomePage(props) {
         </div>
       </section>
 
+      <div className="parallax-banner">
+        <Photo id="1583508915901-b5f84c1dcde1" seed="cargoplane" alt="Cargo plane on the tarmac at dusk" w={1600} h={800} className="kb" />
+        <div className="parallax-tint" />
+        <div className="parallax-content" style={{maxWidth:1200,margin:"0 auto"}}>
+          <Reveal>
+            <span className="orange-tab">Express Network</span>
+            <h2 style={{color:"#fff",fontSize:34,fontWeight:900,letterSpacing:"-0.02em",maxWidth:520,lineHeight:1.1}}>On time.<br />Every time. Anywhere.</h2>
+          </Reveal>
+        </div>
+      </div>
+
       <section style={{background:"#fafafa",padding:"56px 20px",borderBottom:"2px solid #111"}}>
         <div style={{maxWidth:1200,margin:"0 auto"}}>
           <Reveal>
@@ -1562,7 +1605,7 @@ function HomePage(props) {
         <div style={{maxWidth:1200,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:48,alignItems:"center"}} className="g2">
           <Reveal>
             <div className="feat-photo">
-              <Photo id="1586528116311-ad8dd3c8310d" seed="warehouseworkers" alt="Logistics team checking shipment" w={800} h={700} />
+              <Photo id="1586528116311-ad8dd3c8310d" seed="warehouseworkers" alt="Logistics team checking shipment" w={800} h={700} className="kb" />
             </div>
           </Reveal>
           <Reveal delay={120}>
@@ -1572,7 +1615,7 @@ function HomePage(props) {
               {FEATURES.map(function(f){
                 return (
                   <div key={f} className="feat-item">
-                    <div className="feat-check">\u2713</div>
+                    <div className="feat-check">{"\u2713"}</div>
                     <div style={{color:"#525252",fontSize:13,lineHeight:1.6,paddingTop:3}}>{f}</div>
                   </div>
                 );
@@ -1595,8 +1638,8 @@ function HomePage(props) {
               return (
                 <Reveal key={tm.name} delay={i*90}>
                   <div className="test-card">
-                    <div className="stars">\u2605\u2605\u2605\u2605\u2605</div>
-                    <p style={{color:"#374151",fontSize:13,lineHeight:1.7,marginBottom:18}}>\u201c{tm.quote}\u201d</p>
+                    <div className="stars">{"\u2605\u2605\u2605\u2605\u2605"}</div>
+                    <p style={{color:"#374151",fontSize:13,lineHeight:1.7,marginBottom:18}}>{"\u201c"}{tm.quote}{"\u201d"}</p>
                     <div style={{display:"flex",alignItems:"center",gap:10}}>
                       <Photo id={tm.photo} seed={tm.seed} alt={tm.name} w={120} h={120} className="test-avatar" style={{width:44,height:44,borderRadius:"50%",objectFit:"cover",border:"2px solid #111"}} />
                       <div>
@@ -1612,11 +1655,11 @@ function HomePage(props) {
         </div>
       </section>
 
-      <section style={{background:"#111",padding:"52px 20px"}}>
+      <section className="cta-diag" style={{padding:"56px 20px"}}>
         <Reveal>
-          <div style={{maxWidth:540,margin:"0 auto",textAlign:"center"}}>
+          <div style={{maxWidth:540,margin:"0 auto",textAlign:"center",position:"relative",zIndex:2}}>
             <h2 style={{color:"#fff",fontSize:32,fontWeight:900,letterSpacing:"-0.03em",marginBottom:12}}>Ready to Ship Globally?</h2>
-            <p style={{color:"rgba(255,255,255,.45)",fontSize:14,marginBottom:24}}>Join thousands of businesses that trust YvexCargo.</p>
+            <p style={{color:"rgba(255,255,255,.65)",fontSize:14,marginBottom:24}}>Join thousands of businesses that trust YvexCargo.</p>
             <button className="btn btn-y" style={{fontSize:14,padding:"13px 36px"}} onClick={function(){setPage("register");}}>Create Free Account</button>
           </div>
         </Reveal>
