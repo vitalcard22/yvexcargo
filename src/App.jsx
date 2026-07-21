@@ -2153,11 +2153,40 @@ function ServicesPage() {
   );
 }
 
+var PAGE_PATHS = {
+  home:"/", services:"/services", track:"/track", login:"/login", register:"/register",
+  dashboard:"/dashboard", admin:"/admin", about:"/about", careers:"/careers",
+  news:"/news", partners:"/partners", privacy:"/privacy", terms:"/terms",
+};
+var PATH_PAGES = (function(){
+  var m = {};
+  for (var k in PAGE_PATHS) m[PAGE_PATHS[k]] = k;
+  return m;
+})();
+function pageFromLocation() {
+  var path = window.location.pathname.replace(/\/+$/, "") || "/";
+  return PATH_PAGES[path] || "home";
+}
+
 export default function App() {
   useEffect(function(){ DB.init(); }, []);
-  var [page,    setPage]    = useState("home");
-  var [session, setSession] = useState(function(){ return DB.getSession(); });
-  var [trackId, setTrackId] = useState("");
+  var [page,    setPageState] = useState(pageFromLocation);
+  var [session, setSession]   = useState(function(){ return DB.getSession(); });
+  var [trackId, setTrackId]   = useState("");
+
+  function setPage(p) {
+    setPageState(p);
+    var path = PAGE_PATHS[p] || "/";
+    if (window.location.pathname !== path) window.history.pushState({ page:p }, "", path);
+    window.scrollTo(0,0);
+  }
+
+  useEffect(function(){
+    function onPop(){ setPageState(pageFromLocation()); }
+    window.addEventListener("popstate", onPop);
+    return function(){ window.removeEventListener("popstate", onPop); };
+  }, []);
+
   function logout() { Auth.logout(); setSession(null); setPage("home"); }
 
   return (
