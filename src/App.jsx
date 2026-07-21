@@ -226,6 +226,34 @@ tr:last-child td{border-bottom:none;}
 .note-priv{background:var(--g2);border:1.5px solid var(--g3);border-radius:10px;padding:12px 14px;margin-bottom:8px;}
 @keyframes bounce{0%,80%,100%{transform:translateY(0);}40%{transform:translateY(-6px);}}
 @media(max-width:720px){.g2{grid-template-columns:1fr!important;}.g4{grid-template-columns:1fr 1fr!important;}.sidebar{width:190px;min-width:190px;}.hide-sm{display:none!important;}}
+
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);}
+.reveal.in{opacity:1;transform:translateY(0);}
+.ticker{overflow:hidden;white-space:nowrap;background:#111;border-bottom:2px solid #111;}
+.ticker-track{display:inline-block;padding:9px 0;animation:tick 34s linear infinite;}
+.ticker-item{display:inline-flex;align-items:center;color:rgba(255,255,255,.55);font-size:11px;letter-spacing:.05em;padding:0 18px;}
+.ticker-item b{color:rgba(255,255,255,.9);font-weight:700;margin-right:6px;}
+.ticker-dot{color:var(--y);margin-left:18px;}
+@keyframes tick{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+.hero-photo{position:relative;border-radius:20px;overflow:hidden;border:2px solid #111;height:430px;box-shadow:0 12px 32px rgba(0,0,0,.16);}
+.hero-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+.hero-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 45%,rgba(0,0,0,.65) 100%);}
+.stamp-badge{position:absolute;top:18px;right:18px;z-index:2;border:3px solid #dc2626;color:#dc2626;background:rgba(255,255,255,.94);border-radius:8px;padding:5px 12px;font-family:'Space Mono',monospace;font-weight:800;font-size:11px;letter-spacing:.08em;transform:rotate(-9deg);text-transform:uppercase;}
+.float-track{position:absolute;left:16px;right:16px;bottom:16px;z-index:2;background:rgba(17,17,17,.92);backdrop-filter:blur(6px);border-radius:14px;padding:16px;}
+.svc-card{position:relative;border-radius:16px;overflow:hidden;border:2px solid #111;height:270px;}
+.svc-card img{width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.16,1,.3,1);display:block;}
+.svc-card:hover img{transform:scale(1.1);}
+.svc-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 32%,rgba(0,0,0,.88) 100%);display:flex;flex-direction:column;justify-content:flex-end;padding:18px;}
+.svc-tag{display:inline-block;background:var(--y);color:#111;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:5px;margin-bottom:8px;width:fit-content;}
+.feat-photo{border-radius:20px;overflow:hidden;border:2px solid #111;height:400px;}
+.feat-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+.feat-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:18px;}
+.feat-check{width:26px;height:26px;min-width:26px;background:var(--yp);border:2px solid var(--y);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#92400e;}
+.test-card{border:2px solid #111;border-radius:16px;padding:22px;background:#fff;height:100%;}
+.test-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid #111;}
+.stars{color:var(--y);font-size:13px;letter-spacing:2px;margin-bottom:10px;}
+@media(prefers-reduced-motion:reduce){.reveal{transition:none;opacity:1;transform:none;}.ticker-track{animation:none;}}
+@media(max-width:720px){.hero-photo{height:280px;}.feat-photo{height:260px;}}
 `;
 
 function YLogo(props) {
@@ -1333,27 +1361,126 @@ function SupportChat(props) {
   );
 }
 
+function useInView(threshold) {
+  var ref = useRef(null);
+  var [inView, setInView] = useState(false);
+  useEffect(function(){
+    var el = ref.current;
+    if (!el) return;
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if (e.isIntersecting) { setInView(true); obs.unobserve(el); } });
+    }, { threshold: threshold || 0.15 });
+    obs.observe(el);
+    return function(){ obs.disconnect(); };
+  }, []);
+  return [ref, inView];
+}
+
+function Reveal(props) {
+  var [ref, inView] = useInView(props.threshold);
+  var style = Object.assign({ transitionDelay: (props.delay || 0) + "ms" }, props.style || {});
+  return <div ref={ref} className={"reveal" + (inView ? " in" : "")} style={style}>{props.children}</div>;
+}
+
+function CountUp(props) {
+  var [ref, inView] = useInView(0.5);
+  var [val, setVal] = useState(0);
+  useEffect(function(){
+    if (!inView) return;
+    var start = null, dur = props.duration || 1300, to = props.to;
+    function step(ts){
+      if (!start) start = ts;
+      var p = Math.min((ts - start) / dur, 1);
+      setVal(Math.floor(p * to));
+      if (p < 1) requestAnimationFrame(step); else setVal(to);
+    }
+    requestAnimationFrame(step);
+  }, [inView]);
+  return <span ref={ref}>{val}{props.suffix || ""}</span>;
+}
+
+function Photo(props) {
+  var w = props.w || 1200, h = props.h || 800;
+  var primary = "https://images.unsplash.com/photo-" + props.id + "?auto=format&fit=crop&w=" + w + "&q=80";
+  var fallback = "https://picsum.photos/seed/" + props.seed + "/" + w + "/" + h;
+  return (
+    <img src={primary} loading="lazy" alt={props.alt || ""} className={props.className} style={props.style}
+      onError={function(e){ e.target.onerror = null; e.target.src = fallback; }} />
+  );
+}
+
+var TICKER_ITEMS = [
+  "HAM \u2192 NYC \u00b7 SEA FREIGHT \u00b7 250KG",
+  "LON \u2192 BER \u00b7 AIR FREIGHT \u00b7 18KG",
+  "LYO \u2192 CHI \u00b7 EXPRESS \u00b7 5KG",
+  "TYO \u2192 LAX \u00b7 SEA FREIGHT \u00b7 1.2T",
+  "DXB \u2192 LHR \u00b7 AIR FREIGHT \u00b7 40KG",
+  "NYC \u2192 SYD \u00b7 SEA FREIGHT \u00b7 800KG",
+  "SGP \u2192 ROT \u00b7 SEA FREIGHT \u00b7 2.4T",
+  "PAR \u2192 JNB \u00b7 EXPRESS \u00b7 12KG",
+];
+
+function Ticker() {
+  var items = TICKER_ITEMS.concat(TICKER_ITEMS);
+  return (
+    <div className="ticker">
+      <div className="ticker-track">
+        {items.map(function(it, i){
+          return <span key={i} className="mono ticker-item"><b>MANIFEST</b>{it}<span className="ticker-dot">\u25cf</span></span>;
+        })}
+      </div>
+    </div>
+  );
+}
+
+var SERVICES = [
+  { tag:"Ocean", title:"Sea Freight", desc:"Full and part container loads across every major trade lane.", photo:"1578575437130-527eed3abbec", seed:"seafreight" },
+  { tag:"Air",   title:"Air Freight", desc:"Time-critical cargo, airborne within 24 hours of pickup.", photo:"1436491865332-7a61a109cc05", seed:"airfreight" },
+  { tag:"Ground",title:"Road Delivery", desc:"Cross-border trucking with live GPS on every leg.", photo:"1519003722824-194d4455a60c", seed:"roaddelivery" },
+  { tag:"Express",title:"Express Courier", desc:"Documents and parcels, door-to-door in under 72 hours.", photo:"1595246140625-573b715d11dc", seed:"expresscourier" },
+  { tag:"Storage",title:"Warehousing", desc:"Bonded and climate-controlled storage at 40+ hubs worldwide.", photo:"1553413077-190dd305871c", seed:"warehousing" },
+];
+
+var FEATURES = [
+  "Live tracking on every leg, not just pickup and delivery",
+  "Customs paperwork handled end-to-end — no surprise holds",
+  "Cargo insured up to full declared value as standard",
+  "Dedicated account manager for recurring shippers",
+  "24/7 support, in your timezone",
+  "Transparent pricing — no hidden fees at delivery",
+];
+
+var TESTIMONIALS = [
+  { name:"Elena Marsh", role:"Freight Manager, Marsh & Voss Trading", quote:"Customs held one of our shipments for two days and we knew about it before our client even asked. That visibility changed how we plan.", photo:"1494790108377-be9c29b29330", seed:"testimonial1" },
+  { name:"Daniel Osei", role:"Founder, Osei Electronics Exports", quote:"We ship 30-40 pallets a month. The status log means I stop answering \u201cwhere's my order\u201d emails myself.", photo:"1507003211169-0a1dd7228f2d", seed:"testimonial2" },
+  { name:"Priya Nair", role:"Operations Lead, Nair Home Goods", quote:"Switched from two carriers to one. Onboarding took a day, and our delivery disputes dropped by half in the first quarter.", photo:"1500648767791-00dcc994a43e", seed:"testimonial3" },
+];
+
 function HomePage(props) {
   var setPage=props.setPage, setTrackId=props.setTrackId;
   var [t, setT] = useState("");
   return (
     <div className="fade">
-      <section style={{background:"#fff",borderBottom:"2px solid #111",padding:"64px 20px 56px"}}>
+      <Ticker />
+
+      <section style={{background:"#fff",borderBottom:"2px solid #111",padding:"56px 20px 56px"}}>
         <div style={{maxWidth:1200,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:48,alignItems:"center"}} className="g2">
           <div>
             <div style={{display:"inline-flex",alignItems:"center",gap:7,background:"#fef3c7",border:"1.5px solid #f59e0b",borderRadius:100,padding:"5px 14px",marginBottom:18}}>
               <span style={{width:7,height:7,background:"#f59e0b",borderRadius:"50%",display:"inline-block"}} />
               <span style={{color:"#92400e",fontSize:11,fontWeight:700,letterSpacing:"0.06em"}}>SERVING 50+ COUNTRIES WORLDWIDE</span>
             </div>
-            <h1 style={{color:"#111",fontSize:46,fontWeight:900,lineHeight:1.05,letterSpacing:"-0.03em",marginBottom:16}}>Fast. Secure.<br /><span style={{color:"#f59e0b"}}>Global Cargo</span><br />Delivery.</h1>
+            <h1 style={{color:"#111",fontSize:46,fontWeight:900,lineHeight:1.05,letterSpacing:"-0.03em",marginBottom:16}}>Your cargo,<br />tracked to the<br /><span style={{color:"#f59e0b"}}>last mile.</span></h1>
             <p style={{color:"#525252",fontSize:15,lineHeight:1.7,marginBottom:28,maxWidth:400}}>Every location change, customs event and status update — recorded and preserved forever.</p>
             <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
               <button className="btn btn-y" style={{padding:"13px 28px"}} onClick={function(){setPage("register");}}>Create Free Account</button>
               <button className="btn btn-o" style={{padding:"13px 28px"}} onClick={function(){setPage("track");}}>Track Shipment</button>
             </div>
           </div>
-          <div>
-            <div style={{background:"#111",borderRadius:18,padding:22,marginBottom:13}}>
+          <div className="hero-photo">
+            <Photo id="1494412574745-6e39fc09b28d" seed="herocontainers" alt="Cargo containers at port" w={1000} h={860} />
+            <div className="stamp-badge">In Transit</div>
+            <div className="float-track">
               <p style={{color:"#f59e0b",fontSize:10,fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:11}}>Quick Track</p>
               <div style={{display:"flex",gap:9,marginBottom:9}}>
                 <input className="inp" placeholder="Enter tracking ID..." value={t} onChange={function(e){setT(e.target.value);}}
@@ -1361,34 +1488,124 @@ function HomePage(props) {
                   onKeyDown={function(e){if(e.key==="Enter"&&t){setTrackId(t);setPage("track");}}} />
                 <button className="btn btn-y" onClick={function(){if(t){setTrackId(t);setPage("track");}}}>Track</button>
               </div>
-              <p style={{color:"rgba(255,255,255,.2)",fontSize:10,fontWeight:600}}>Try: YVC-2024-001847</p>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-              {[["50K+","Delivered"],["99.2%","On-Time"],["50+","Countries"],["24/7","Support"]].map(function(item){
-                return (
-                  <div key={item[1]} style={{border:"2px solid #111",borderRadius:10,padding:"13px 15px"}}>
-                    <div className="mono" style={{fontSize:19,fontWeight:700}}>{item[0]}</div>
-                    <div style={{color:"#525252",fontSize:11,fontWeight:700,marginTop:2}}>{item[1]}</div>
-                  </div>
-                );
-              })}
+              <p style={{color:"rgba(255,255,255,.35)",fontSize:10,fontWeight:600}}>Try: YVC-2024-001847</p>
             </div>
           </div>
         </div>
       </section>
 
-      <section style={{background:"#fafafa",padding:"48px 20px",borderBottom:"2px solid #111"}}>
+      <Reveal>
+        <section style={{background:"#fafafa",padding:"36px 20px",borderBottom:"2px solid #111"}}>
+          <div style={{maxWidth:1200,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:10}} className="g4">
+            {[[50,"K+","Shipments Delivered"],[99.2,"%","On-Time Rate"],[50,"+","Countries Served"],[24,"/7","Support Coverage"]].map(function(item){
+              return (
+                <div key={item[2]} style={{border:"2px solid #111",borderRadius:10,padding:"16px 18px",background:"#fff"}}>
+                  <div className="mono" style={{fontSize:24,fontWeight:700}}><CountUp to={item[0]} suffix={item[1]} /></div>
+                  <div style={{color:"#525252",fontSize:11,fontWeight:700,marginTop:3}}>{item[2]}</div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      </Reveal>
+
+      <section style={{padding:"64px 20px",borderBottom:"2px solid #111"}}>
         <div style={{maxWidth:1200,margin:"0 auto"}}>
-          <div style={{fontSize:10,fontWeight:700,color:"#f59e0b",textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:7}}>Tracking Pipeline</div>
-          <h2 style={{fontSize:28,fontWeight:900,color:"#111",marginBottom:22}}>6-Stage Logistics Flow</h2>
+          <Reveal>
+            <div style={{marginBottom:28}}>
+              <div style={{fontSize:10,fontWeight:700,color:"#f59e0b",textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:7}}>What We Move</div>
+              <h2 style={{fontSize:30,fontWeight:900,color:"#111"}}>A Mode For Every Shipment</h2>
+            </div>
+          </Reveal>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(230px, 1fr))",gap:18}}>
+            {SERVICES.map(function(s, i){
+              return (
+                <Reveal key={s.title} delay={i*80}>
+                  <div className="svc-card">
+                    <Photo id={s.photo} seed={s.seed} alt={s.title} w={500} h={600} />
+                    <div className="svc-overlay">
+                      <span className="svc-tag">{s.tag}</span>
+                      <div style={{color:"#fff",fontWeight:800,fontSize:16,marginBottom:5}}>{s.title}</div>
+                      <div style={{color:"rgba(255,255,255,.75)",fontSize:12,lineHeight:1.5}}>{s.desc}</div>
+                    </div>
+                  </div>
+                </Reveal>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section style={{background:"#fafafa",padding:"56px 20px",borderBottom:"2px solid #111"}}>
+        <div style={{maxWidth:1200,margin:"0 auto"}}>
+          <Reveal>
+            <div style={{fontSize:10,fontWeight:700,color:"#f59e0b",textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:7}}>Tracking Pipeline</div>
+            <h2 style={{fontSize:28,fontWeight:900,color:"#111",marginBottom:22}}>6-Stage Logistics Flow</h2>
+          </Reveal>
           <div style={{display:"flex",overflowX:"auto",gap:0}}>
             {STATUS_FLOW.map(function(s,i){
               return (
-                <div key={s.key} style={{flex:"1 0 120px",border:"2px solid #111",borderLeft:i>0?"none":"2px solid #111",borderRadius:i===0?"12px 0 0 12px":i===5?"0 12px 12px 0":0,padding:"14px 12px",background:i===0?"#f59e0b":i===3?"#fce7f3":"#fff"}}>
-                  <div style={{fontSize:20,marginBottom:6}}>{s.icon}</div>
-                  <div style={{fontWeight:800,fontSize:10,color:"#111",textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:3}}>{s.label}</div>
-                  <div style={{fontSize:10,color:"#525252",lineHeight:1.5}}>{s.desc}</div>
-                </div>
+                <Reveal key={s.key} delay={i*70} style={{flex:"1 0 120px"}}>
+                  <div style={{border:"2px solid #111",borderLeft:i>0?"none":"2px solid #111",borderRadius:i===0?"12px 0 0 12px":i===5?"0 12px 12px 0":0,padding:"14px 12px",background:i===0?"#f59e0b":i===3?"#fce7f3":"#fff",height:"100%"}}>
+                    <div style={{fontSize:20,marginBottom:6}}>{s.icon}</div>
+                    <div style={{fontWeight:800,fontSize:10,color:"#111",textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:3}}>{s.label}</div>
+                    <div style={{fontSize:10,color:"#525252",lineHeight:1.5}}>{s.desc}</div>
+                  </div>
+                </Reveal>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section style={{padding:"64px 20px",borderBottom:"2px solid #111"}}>
+        <div style={{maxWidth:1200,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:48,alignItems:"center"}} className="g2">
+          <Reveal>
+            <div className="feat-photo">
+              <Photo id="1586528116311-ad8dd3c8310d" seed="warehouseworkers" alt="Logistics team checking shipment" w={800} h={700} />
+            </div>
+          </Reveal>
+          <Reveal delay={120}>
+            <div>
+              <div style={{fontSize:10,fontWeight:700,color:"#f59e0b",textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:7}}>Why Ship With Us</div>
+              <h2 style={{fontSize:28,fontWeight:900,color:"#111",marginBottom:20}}>Built For Businesses That Ship Often</h2>
+              {FEATURES.map(function(f){
+                return (
+                  <div key={f} className="feat-item">
+                    <div className="feat-check">\u2713</div>
+                    <div style={{color:"#525252",fontSize:13,lineHeight:1.6,paddingTop:3}}>{f}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      <section style={{background:"#fafafa",padding:"64px 20px",borderBottom:"2px solid #111"}}>
+        <div style={{maxWidth:1200,margin:"0 auto"}}>
+          <Reveal>
+            <div style={{textAlign:"center",marginBottom:32}}>
+              <div style={{fontSize:10,fontWeight:700,color:"#f59e0b",textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:7}}>Trusted By Shippers</div>
+              <h2 style={{fontSize:28,fontWeight:900,color:"#111"}}>What Our Customers Say</h2>
+            </div>
+          </Reveal>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(260px, 1fr))",gap:18}}>
+            {TESTIMONIALS.map(function(tm, i){
+              return (
+                <Reveal key={tm.name} delay={i*90}>
+                  <div className="test-card">
+                    <div className="stars">\u2605\u2605\u2605\u2605\u2605</div>
+                    <p style={{color:"#374151",fontSize:13,lineHeight:1.7,marginBottom:18}}>\u201c{tm.quote}\u201d</p>
+                    <div style={{display:"flex",alignItems:"center",gap:10}}>
+                      <Photo id={tm.photo} seed={tm.seed} alt={tm.name} w={120} h={120} className="test-avatar" style={{width:44,height:44,borderRadius:"50%",objectFit:"cover",border:"2px solid #111"}} />
+                      <div>
+                        <div style={{fontWeight:800,fontSize:13,color:"#111"}}>{tm.name}</div>
+                        <div style={{fontSize:11,color:"#a3a3a3"}}>{tm.role}</div>
+                      </div>
+                    </div>
+                  </div>
+                </Reveal>
               );
             })}
           </div>
@@ -1396,11 +1613,13 @@ function HomePage(props) {
       </section>
 
       <section style={{background:"#111",padding:"52px 20px"}}>
-        <div style={{maxWidth:540,margin:"0 auto",textAlign:"center"}}>
-          <h2 style={{color:"#fff",fontSize:32,fontWeight:900,letterSpacing:"-0.03em",marginBottom:12}}>Ready to Ship Globally?</h2>
-          <p style={{color:"rgba(255,255,255,.45)",fontSize:14,marginBottom:24}}>Join thousands of businesses that trust YvexCargo.</p>
-          <button className="btn btn-y" style={{fontSize:14,padding:"13px 36px"}} onClick={function(){setPage("register");}}>Create Free Account</button>
-        </div>
+        <Reveal>
+          <div style={{maxWidth:540,margin:"0 auto",textAlign:"center"}}>
+            <h2 style={{color:"#fff",fontSize:32,fontWeight:900,letterSpacing:"-0.03em",marginBottom:12}}>Ready to Ship Globally?</h2>
+            <p style={{color:"rgba(255,255,255,.45)",fontSize:14,marginBottom:24}}>Join thousands of businesses that trust YvexCargo.</p>
+            <button className="btn btn-y" style={{fontSize:14,padding:"13px 36px"}} onClick={function(){setPage("register");}}>Create Free Account</button>
+          </div>
+        </Reveal>
       </section>
 
       <footer style={{background:"#fff",padding:"40px 20px 18px",borderTop:"2px solid #111"}}>
