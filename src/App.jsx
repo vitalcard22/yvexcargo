@@ -288,7 +288,40 @@ tr:last-child td{border-bottom:none;}
 .kb{animation:kb 16s ease-in-out infinite alternate;}
 @keyframes kb{from{transform:scale(1);}to{transform:scale(1.1);}}
 @media(prefers-reduced-motion:reduce){.reveal{transition:none;opacity:1;transform:none;}.ticker-track{animation:none;}.kb{animation:none;}}
-@media(max-width:720px){.feat-photo{height:260px;}.hero-content{padding:56px 20px 170px;}.stat-strip-inner{flex-wrap:wrap;gap:14px 0;}.stat-strip-item{flex:1 1 50%;border-left:none!important;padding-left:0!important;}.parallax-banner{height:260px;}}
+
+/* Navbar mobile menu */
+.nav-burger{display:none;flex-direction:column;justify-content:center;gap:5px;width:34px;height:34px;background:transparent;border:none;cursor:pointer;margin-left:auto;}
+.nav-burger span{display:block;width:22px;height:2px;background:#111;border-radius:2px;}
+.nav-mobile-menu{display:none;}
+
+@media(max-width:760px){
+  .nav-desktop{display:none!important;}
+  .nav-burger{display:flex;}
+  .nav-mobile-menu{display:flex;flex-direction:column;padding:14px 20px 18px;border-top:1px solid var(--g3);background:#fff;}
+  .nav-mobile-link{padding:11px 4px;font-size:14px;font-weight:600;color:var(--g5);cursor:pointer;}
+  .nav-mobile-link.on{color:#111;font-weight:800;}
+}
+
+/* Broader mobile pass */
+@media(max-width:720px){
+  .feat-photo{height:260px;}
+  .hero-full{min-height:520px;}
+  .hero-content{min-height:520px;padding:44px 20px 190px;}
+  .hero-content h1{font-size:34px!important;}
+  .glass-panel{max-width:100%;}
+  .stat-strip-inner{flex-wrap:wrap;gap:14px 0;padding:14px 16px;}
+  .stat-strip-item{flex:1 1 50%;border-left:none!important;padding-left:0!important;}
+  .parallax-banner{height:220px;}
+  .parallax-content h2{font-size:24px!important;}
+  .svc-card{height:220px;}
+  .test-card{border-right:none!important;padding-right:0!important;border-bottom:1px solid var(--g3);padding-bottom:24px;margin-bottom:24px;}
+  .ticker-item{font-size:9px;padding:0 12px;}
+}
+@media(max-width:480px){
+  .hero-content h1{font-size:28px!important;}
+  .hero-content p{font-size:13px!important;}
+  .stat-strip-item{flex:1 1 100%;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.12);}
+}
 `;
 
 function YLogo(props) {
@@ -328,31 +361,57 @@ function SBadge(props) {
 
 function Navbar(props) {
   var page=props.page, setPage=props.setPage, session=props.session, onLogout=props.onLogout;
+  var [open, setOpen] = useState(false);
+  function go(p){ return function(){ setPage(p); setOpen(false); }; }
   return (
     <nav style={{background:"#fff",borderBottom:"2px solid #111",position:"sticky",top:0,zIndex:100}}>
       <div style={{maxWidth:1200,margin:"0 auto",padding:"0 20px",display:"flex",alignItems:"center",height:62}}>
-        <div onClick={function(){setPage("home");}} style={{cursor:"pointer",marginRight:28}}><Logo /></div>
-        <div style={{display:"flex",gap:2,flex:1}}>
+        <div onClick={go("home")} style={{cursor:"pointer",marginRight:28}}><Logo /></div>
+        <div className="nav-desktop" style={{display:"flex",gap:2,flex:1}}>
           {[["home","Home"],["services","Services"],["track","Track"]].map(function(item){
-            return <span key={item[0]} className={"nlink "+(page===item[0]?"on":"")} onClick={function(){setPage(item[0]);}}>{item[1]}</span>;
+            return <span key={item[0]} className={"nlink "+(page===item[0]?"on":"")} onClick={go(item[0])}>{item[1]}</span>;
           })}
         </div>
-        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+        <div className="nav-desktop" style={{display:"flex",gap:8,alignItems:"center"}}>
           {session ? (
             <>
-              <span className="nlink" style={{fontWeight:800}} onClick={function(){setPage(session.role==="admin"?"admin":"dashboard");}}>
+              <span className="nlink" style={{fontWeight:800}} onClick={go(session.role==="admin"?"admin":"dashboard")}>
                 {session.role==="admin" ? "Admin" : "Hi, "+session.name.split(" ")[0]}
               </span>
               <button className="btn btn-g sm" onClick={onLogout}>Sign Out</button>
             </>
           ) : (
             <>
-              <span className="nlink" onClick={function(){setPage("login");}}>Sign In</span>
-              <button className="btn btn-y sm" onClick={function(){setPage("register");}}>Get Started</button>
+              <span className="nlink" onClick={go("login")}>Sign In</span>
+              <button className="btn btn-y sm" onClick={go("register")}>Get Started</button>
             </>
           )}
         </div>
+        <button className="nav-burger" aria-label="Menu" onClick={function(){setOpen(!open);}}>
+          <span /><span /><span />
+        </button>
       </div>
+      {open && (
+        <div className="nav-mobile-menu">
+          {[["home","Home"],["services","Services"],["track","Track"]].map(function(item){
+            return <div key={item[0]} className={"nav-mobile-link "+(page===item[0]?"on":"")} onClick={go(item[0])}>{item[1]}</div>;
+          })}
+          <div style={{height:1,background:"var(--g3)",margin:"8px 0"}} />
+          {session ? (
+            <>
+              <div className="nav-mobile-link" onClick={go(session.role==="admin"?"admin":"dashboard")}>
+                {session.role==="admin" ? "Admin Dashboard" : "Hi, "+session.name.split(" ")[0]}
+              </div>
+              <button className="btn btn-g" style={{width:"100%",justifyContent:"center",marginTop:8}} onClick={function(){setOpen(false);onLogout();}}>Sign Out</button>
+            </>
+          ) : (
+            <>
+              <div className="nav-mobile-link" onClick={go("login")}>Sign In</div>
+              <button className="btn btn-y" style={{width:"100%",justifyContent:"center",marginTop:8}} onClick={go("register")}>Get Started</button>
+            </>
+          )}
+        </div>
+      )}
     </nav>
   );
 }
