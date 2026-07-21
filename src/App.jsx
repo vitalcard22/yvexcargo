@@ -206,6 +206,7 @@ tr:last-child td{border-bottom:none;}
 .nlink{color:var(--g5);font-size:13px;font-weight:600;padding:7px 13px;border-radius:8px;cursor:pointer;transition:all .13s;}
 .nlink:hover{color:#111;background:var(--g2);}
 .nlink.on{color:#111;background:var(--yp);}
+.flink:hover{color:#111!important;text-decoration:underline;}
 .tl-row{display:flex;gap:14px;position:relative;margin-bottom:8px;}
 .tl-row:not(:last-child)::before{content:'';position:absolute;left:17px;top:38px;width:2px;bottom:-8px;background:var(--g3);z-index:0;}
 .tl-row.is-past::before{background:var(--y);}
@@ -1673,29 +1674,315 @@ function HomePage(props) {
         </Reveal>
       </section>
 
-      <footer style={{background:"#fff",padding:"40px 20px 18px",borderTop:"2px solid #111"}}>
-        <div style={{maxWidth:1200,margin:"0 auto"}}>
-          <div className="g2" style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr",gap:32,paddingBottom:26,borderBottom:"2px solid #111"}}>
-            <div><Logo /><p style={{color:"#525252",fontSize:12,lineHeight:1.7,maxWidth:230,marginTop:12}}>Global logistics with full transparency — every status recorded forever.</p></div>
-            {[
-              {title:"Services",items:["Air Freight","Sea Freight","Road Delivery","Express Courier","Warehousing"]},
-              {title:"Company", items:["About Us","Careers","News","Partners"]},
-              {title:"Contact", items:["support@yvexcargo.com","+1 509 305 2716","New York City, USA","Mon-Fri 8am-6pm"]},
-            ].map(function(col){
-              return (
-                <div key={col.title}>
-                  <div style={{fontWeight:800,fontSize:11,color:"#111",marginBottom:11,letterSpacing:"0.08em",textTransform:"uppercase"}}>{col.title}</div>
-                  {col.items.map(function(item){return <div key={item} style={{marginBottom:6,fontSize:12,color:"#525252"}}>{item}</div>;})}
+      <SiteFooter setPage={setPage} />
+    </div>
+  );
+}
+
+function SiteFooter(props) {
+  var setPage = props.setPage;
+  function go(page){ return function(){ setPage(page); window.scrollTo(0,0); }; }
+  return (
+    <footer style={{background:"#fff",padding:"40px 20px 18px",borderTop:"1px solid var(--g3)"}}>
+      <div style={{maxWidth:1200,margin:"0 auto"}}>
+        <div className="g2" style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr",gap:32,paddingBottom:26,borderBottom:"1px solid var(--g3)"}}>
+          <div><Logo /><p style={{color:"#525252",fontSize:12,lineHeight:1.7,maxWidth:230,marginTop:12}}>Global logistics with full transparency — every status recorded forever.</p></div>
+          <div>
+            <div style={{fontWeight:800,fontSize:11,color:"#111",marginBottom:11,letterSpacing:"0.08em",textTransform:"uppercase"}}>Services</div>
+            {["Air Freight","Sea Freight","Road Delivery","Express Courier","Warehousing"].map(function(item){
+              return <div key={item} className="flink" onClick={go("services")} style={{marginBottom:6,fontSize:12,color:"#525252",cursor:"pointer"}}>{item}</div>;
+            })}
+          </div>
+          <div>
+            <div style={{fontWeight:800,fontSize:11,color:"#111",marginBottom:11,letterSpacing:"0.08em",textTransform:"uppercase"}}>Company</div>
+            {[["About Us","about"],["Careers","careers"],["News","news"],["Partners","partners"]].map(function(item){
+              return <div key={item[0]} className="flink" onClick={go(item[1])} style={{marginBottom:6,fontSize:12,color:"#525252",cursor:"pointer"}}>{item[0]}</div>;
+            })}
+          </div>
+          <div>
+            <div style={{fontWeight:800,fontSize:11,color:"#111",marginBottom:11,letterSpacing:"0.08em",textTransform:"uppercase"}}>Contact</div>
+            <a href="mailto:support@yvexcargo.com" style={{display:"block",marginBottom:6,fontSize:12,color:"#525252",textDecoration:"none"}}>support@yvexcargo.com</a>
+            <a href="tel:+15093052716" style={{display:"block",marginBottom:6,fontSize:12,color:"#525252",textDecoration:"none"}}>+1 509 305 2716</a>
+            <div style={{marginBottom:6,fontSize:12,color:"#525252"}}>New York City, USA</div>
+            <div style={{marginBottom:6,fontSize:12,color:"#525252"}}>Mon-Fri 8am-6pm</div>
+          </div>
+        </div>
+        <div style={{paddingTop:14,display:"flex",justifyContent:"space-between",fontSize:11,color:"#a3a3a3",fontWeight:600,flexWrap:"wrap",gap:8}}>
+          <span>2006 YvexCargo. All rights reserved.</span>
+          <span>
+            <span className="flink" onClick={go("privacy")} style={{cursor:"pointer"}}>Privacy Policy</span> — <span className="flink" onClick={go("terms")} style={{cursor:"pointer"}}>Terms of Service</span>
+          </span>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+function PageHeader(props) {
+  return (
+    <section style={{padding:"56px 20px 40px",borderBottom:"1px solid var(--g2)"}}>
+      <div style={{maxWidth:900,margin:"0 auto"}}>
+        <Reveal>
+          <div className="eyebrow-line"><span>{props.eyebrow}</span></div>
+          <h1 style={{fontSize:36,fontWeight:800,color:"#111",letterSpacing:"-0.02em",marginBottom:14}}>{props.title}</h1>
+          {props.sub && <p style={{color:"#525252",fontSize:15,lineHeight:1.7,maxWidth:640}}>{props.sub}</p>}
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+var ABOUT_TIMELINE = [
+  { year:"2006", text:"Founded in New York by a small team of freight forwarders tired of shipments disappearing into a black box after customs." },
+  { year:"2011", text:"Opened our first overseas hub in Hamburg, connecting European exporters directly to US ports." },
+  { year:"2016", text:"Launched our digital tracking platform, putting live status updates in front of customers for the first time." },
+  { year:"2021", text:"Crossed 50 countries served, with bonded warehousing added at every major hub." },
+  { year:"2024", text:"Introduced automatic customs-hold alerts, so customers hear about a delay before they have to ask." },
+];
+
+var ABOUT_VALUES = [
+  { title:"Visibility first", desc:"If a shipment moves, changes hands, or gets held, it goes in the log. No status update is ever quietly skipped." },
+  { title:"Own the delay", desc:"Customs holds and weather delays happen. We tell customers immediately instead of waiting for them to ask." },
+  { title:"One point of contact", desc:"Recurring shippers get a dedicated account manager, not a rotating queue of support tickets." },
+];
+
+function AboutPage(props) {
+  return (
+    <div className="fade">
+      <PageHeader eyebrow="Our Story" title="Built after one shipment went missing for nine days" sub="YvexCargo started as a reaction to a bad experience, not a business plan. Here's how a customs delay in 2006 became a logistics company serving 50+ countries." />
+      <section style={{padding:"56px 20px",borderBottom:"1px solid var(--g2)"}}>
+        <div style={{maxWidth:900,margin:"0 auto"}}>
+          <Reveal>
+            <p style={{color:"#374151",fontSize:14,lineHeight:1.8,marginBottom:20}}>In 2006, our founder was running a small import business and lost nine days — and a client — to a shipment that sat in customs with no explanation. Calls to the carrier went nowhere. The only update came after the client asked for a refund. That gap between "in transit" and "actually knowing what's happening" became the entire reason YvexCargo exists.</p>
+            <p style={{color:"#374151",fontSize:14,lineHeight:1.8}}>We started with three people and a single trade lane between New York and Hamburg. Every shipment got a manual log: who touched it, where, and when. That habit never left — it's now the tracking pipeline every customer sees today.</p>
+          </Reveal>
+        </div>
+      </section>
+      <section style={{padding:"56px 20px",borderBottom:"1px solid var(--g2)",background:"#fafafa"}}>
+        <div style={{maxWidth:900,margin:"0 auto"}}>
+          <Reveal><h2 style={{fontSize:22,fontWeight:800,color:"#111",marginBottom:28}}>How we got here</h2></Reveal>
+          {ABOUT_TIMELINE.map(function(t, i){
+            return (
+              <Reveal key={t.year} delay={i*70}>
+                <div style={{display:"flex",gap:20,paddingBottom:22,marginBottom:22,borderBottom:i<ABOUT_TIMELINE.length-1?"1px solid var(--g3)":"none"}}>
+                  <div className="mono" style={{minWidth:56,fontWeight:700,color:"#f59e0b",fontSize:14}}>{t.year}</div>
+                  <div style={{color:"#374151",fontSize:13,lineHeight:1.7}}>{t.text}</div>
                 </div>
+              </Reveal>
+            );
+          })}
+        </div>
+      </section>
+      <section style={{padding:"56px 20px",borderBottom:"1px solid var(--g2)"}}>
+        <div style={{maxWidth:900,margin:"0 auto"}}>
+          <Reveal><h2 style={{fontSize:22,fontWeight:800,color:"#111",marginBottom:24}}>What that experience taught us</h2></Reveal>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(220px, 1fr))",gap:24}}>
+            {ABOUT_VALUES.map(function(v, i){
+              return (
+                <Reveal key={v.title} delay={i*80}>
+                  <div>
+                    <div style={{fontWeight:700,fontSize:14,color:"#111",marginBottom:8}}>{v.title}</div>
+                    <div style={{color:"#525252",fontSize:12,lineHeight:1.7}}>{v.desc}</div>
+                  </div>
+                </Reveal>
               );
             })}
           </div>
-          <div style={{paddingTop:14,display:"flex",justifyContent:"space-between",fontSize:11,color:"#a3a3a3",fontWeight:600,flexWrap:"wrap",gap:8}}>
-            <span>2006 YvexCargo. All rights reserved.</span>
-            <span>Privacy Policy — Terms of Service</span>
-          </div>
         </div>
-      </footer>
+      </section>
+      <section className="cta-quiet" style={{padding:"56px 20px"}}>
+        <Reveal>
+          <div style={{maxWidth:480,margin:"0 auto",textAlign:"center"}}>
+            <div className="cta-underline" />
+            <h2 style={{color:"#fff",fontSize:24,fontWeight:800,marginBottom:20}}>Ship with a team that answers before you ask</h2>
+            <button className="btn btn-y" style={{fontSize:14,padding:"13px 32px"}} onClick={function(){props.setPage("register");}}>Create Free Account</button>
+          </div>
+        </Reveal>
+      </section>
+      <SiteFooter setPage={props.setPage} />
+    </div>
+  );
+}
+
+var OPEN_ROLES = [
+  { title:"Customs Compliance Specialist", loc:"New York, USA", type:"Full-time" },
+  { title:"Operations Coordinator, Sea Freight", loc:"Hamburg, Germany", type:"Full-time" },
+  { title:"Warehouse Associate", loc:"Singapore", type:"Full-time" },
+  { title:"Backend Engineer, Tracking Platform", loc:"Remote", type:"Full-time" },
+  { title:"Customer Support, Night Shift", loc:"Remote", type:"Part-time" },
+];
+
+function CareersPage(props) {
+  return (
+    <div className="fade">
+      <PageHeader eyebrow="Careers" title="Help us close the gap between shipped and delivered" sub="We're a logistics company that happens to write a lot of software. Most roles sit close to an actual shipment, not a spreadsheet about one." />
+      <section style={{padding:"48px 20px",borderBottom:"1px solid var(--g2)"}}>
+        <div style={{maxWidth:900,margin:"0 auto"}}>
+          <Reveal><h2 style={{fontSize:20,fontWeight:800,color:"#111",marginBottom:22}}>Open roles</h2></Reveal>
+          {OPEN_ROLES.map(function(r, i){
+            return (
+              <Reveal key={r.title} delay={i*60}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10,padding:"16px 0",borderBottom:i<OPEN_ROLES.length-1?"1px solid var(--g3)":"none"}}>
+                  <div>
+                    <div style={{fontWeight:700,fontSize:14,color:"#111",marginBottom:4}}>{r.title}</div>
+                    <div style={{fontSize:12,color:"#a3a3a3"}}>{r.loc} · {r.type}</div>
+                  </div>
+                  <a href="mailto:careers@yvexcargo.com" className="btn btn-o sm">Apply</a>
+                </div>
+              </Reveal>
+            );
+          })}
+        </div>
+      </section>
+      <section style={{padding:"48px 20px",borderBottom:"1px solid var(--g2)",background:"#fafafa"}}>
+        <div style={{maxWidth:900,margin:"0 auto"}}>
+          <Reveal>
+            <div style={{textAlign:"center"}}>
+              <h2 style={{fontSize:20,fontWeight:800,color:"#111",marginBottom:10}}>Don't see the right role?</h2>
+              <p style={{color:"#525252",fontSize:13,marginBottom:18}}>We're always open to hearing from people who've worked customs, warehousing, or freight ops.</p>
+              <a href="mailto:careers@yvexcargo.com" className="btn btn-y">Email careers@yvexcargo.com</a>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+      <SiteFooter setPage={props.setPage} />
+    </div>
+  );
+}
+
+var NEWS_POSTS = [
+  { date:"14 May 2026", title:"YvexCargo opens third Asia-Pacific hub in Singapore", excerpt:"The new bonded warehouse adds 30,000 sq ft of climate-controlled storage and cuts average transit time to Southeast Asia by a day." },
+  { date:"2 Feb 2026", title:"Introducing automatic customs-hold alerts", excerpt:"Customers now get an email the moment a shipment is flagged for inspection, with the reason and expected resolution time." },
+  { date:"19 Nov 2025", title:"YvexCargo named a top 50 logistics startup", excerpt:"Recognized for our public shipment-status log — a feature most competitors keep behind a support ticket." },
+  { date:"3 Sep 2025", title:"Expanding road delivery coverage across the EU", excerpt:"Cross-border trucking now covers 18 EU countries with live GPS tracking on every leg." },
+];
+
+function NewsPage(props) {
+  return (
+    <div className="fade">
+      <PageHeader eyebrow="News" title="What's happening at YvexCargo" />
+      <section style={{padding:"48px 20px"}}>
+        <div style={{maxWidth:900,margin:"0 auto"}}>
+          {NEWS_POSTS.map(function(p, i){
+            return (
+              <Reveal key={p.title} delay={i*70}>
+                <div style={{padding:"24px 0",borderBottom:i<NEWS_POSTS.length-1?"1px solid var(--g3)":"none"}}>
+                  <div className="mono" style={{fontSize:11,color:"#a3a3a3",marginBottom:8}}>{p.date}</div>
+                  <div style={{fontWeight:700,fontSize:17,color:"#111",marginBottom:8}}>{p.title}</div>
+                  <div style={{color:"#525252",fontSize:13,lineHeight:1.7}}>{p.excerpt}</div>
+                </div>
+              </Reveal>
+            );
+          })}
+        </div>
+      </section>
+      <SiteFooter setPage={props.setPage} />
+    </div>
+  );
+}
+
+var PARTNER_GROUPS = [
+  { title:"Ocean & Air Carriers", items:["Atlas Shipping Alliance","Meridian Air Cargo","Northbridge Container Lines"] },
+  { title:"Customs & Compliance", items:["Meridian Customs Group","Harborview Brokerage Partners"] },
+  { title:"Technology", items:["PortLink Technologies","Cargotrace Systems"] },
+  { title:"Insurance", items:["Northbridge Insurance Partners","Freightguard Underwriters"] },
+];
+
+function PartnersPage(props) {
+  return (
+    <div className="fade">
+      <PageHeader eyebrow="Partners" title="The network behind every shipment" sub="No single carrier covers 50 countries alone. These are the partners we route through, insure through, and build with." />
+      <section style={{padding:"48px 20px",borderBottom:"1px solid var(--g2)"}}>
+        <div style={{maxWidth:900,margin:"0 auto"}}>
+          {PARTNER_GROUPS.map(function(g, i){
+            return (
+              <Reveal key={g.title} delay={i*70}>
+                <div style={{marginBottom:32}}>
+                  <div style={{fontWeight:700,fontSize:13,color:"#111",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:14}}>{g.title}</div>
+                  <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+                    {g.items.map(function(name){
+                      return <div key={name} style={{border:"1px solid var(--g3)",borderRadius:8,padding:"10px 16px",fontSize:13,color:"#374151",fontWeight:600}}>{name}</div>;
+                    })}
+                  </div>
+                </div>
+              </Reveal>
+            );
+          })}
+        </div>
+      </section>
+      <section style={{padding:"48px 20px",background:"#fafafa"}}>
+        <div style={{maxWidth:900,margin:"0 auto",textAlign:"center"}}>
+          <Reveal>
+            <h2 style={{fontSize:20,fontWeight:800,color:"#111",marginBottom:10}}>Want to partner with us?</h2>
+            <p style={{color:"#525252",fontSize:13,marginBottom:18}}>We're expanding our carrier and brokerage network in Southeast Asia and Latin America.</p>
+            <a href="mailto:partnerships@yvexcargo.com" className="btn btn-y">Email partnerships@yvexcargo.com</a>
+          </Reveal>
+        </div>
+      </section>
+      <SiteFooter setPage={props.setPage} />
+    </div>
+  );
+}
+
+function PrivacyPage(props) {
+  var sections = [
+    { h:"Information we collect", b:"When you create an account, we collect your name, email, and password. When you create a shipment, we collect sender and receiver names, addresses, and shipment details. We do not collect payment card information through this platform." },
+    { h:"How we use it", b:"We use your information to create and track shipments, send status and customs-hold notifications, and provide support. We do not sell customer data to third parties." },
+    { h:"What we share with partners", b:"Shipment details are shared with the specific carrier, customs broker, or warehouse handling that shipment — only as needed to move the cargo." },
+    { h:"Data retention", b:"Shipment logs are retained indefinitely so tracking history stays available. Account data is retained until you request deletion." },
+    { h:"Your rights", b:"You can request a copy of your data or ask us to delete your account at any time by contacting support@yvexcargo.com." },
+    { h:"Changes to this policy", b:"If this policy changes materially, we'll notify account holders by email before the change takes effect." },
+  ];
+  return (
+    <div className="fade">
+      <PageHeader eyebrow="Legal" title="Privacy Policy" sub="Last updated 1 January 2026." />
+      <section style={{padding:"48px 20px"}}>
+        <div style={{maxWidth:800,margin:"0 auto"}}>
+          {sections.map(function(s, i){
+            return (
+              <Reveal key={s.h} delay={i*50}>
+                <div style={{marginBottom:28}}>
+                  <div style={{fontWeight:700,fontSize:14,color:"#111",marginBottom:8}}>{s.h}</div>
+                  <div style={{color:"#525252",fontSize:13,lineHeight:1.8}}>{s.b}</div>
+                </div>
+              </Reveal>
+            );
+          })}
+        </div>
+      </section>
+      <SiteFooter setPage={props.setPage} />
+    </div>
+  );
+}
+
+function TermsPage(props) {
+  var sections = [
+    { h:"Acceptance of terms", b:"By creating an account or booking a shipment through YvexCargo, you agree to these terms." },
+    { h:"Service description", b:"YvexCargo arranges and tracks freight forwarding across sea, air, road, and express courier modes, and provides shipment visibility through this platform." },
+    { h:"Your responsibilities", b:"You're responsible for providing accurate shipment details, including sender/receiver information and cargo description. Inaccurate declarations may delay customs clearance." },
+    { h:"Fees and payment", b:"Fees are quoted per shipment prior to booking. Card application fees, where applicable, are informational and non-refundable once processing begins." },
+    { h:"Limitation of liability", b:"YvexCargo insures cargo up to its full declared value as standard. Liability beyond the declared value is not assumed unless separately agreed in writing." },
+    { h:"Governing law", b:"These terms are governed by the laws of the State of New York, USA." },
+    { h:"Changes to these terms", b:"We may update these terms from time to time. Continued use of the platform after a change constitutes acceptance." },
+  ];
+  return (
+    <div className="fade">
+      <PageHeader eyebrow="Legal" title="Terms of Service" sub="Last updated 1 January 2026." />
+      <section style={{padding:"48px 20px"}}>
+        <div style={{maxWidth:800,margin:"0 auto"}}>
+          {sections.map(function(s, i){
+            return (
+              <Reveal key={s.h} delay={i*50}>
+                <div style={{marginBottom:28}}>
+                  <div style={{fontWeight:700,fontSize:14,color:"#111",marginBottom:8}}>{s.h}</div>
+                  <div style={{color:"#525252",fontSize:13,lineHeight:1.8}}>{s.b}</div>
+                </div>
+              </Reveal>
+            );
+          })}
+        </div>
+      </section>
+      <SiteFooter setPage={props.setPage} />
     </div>
   );
 }
@@ -1756,6 +2043,12 @@ export default function App() {
       {page!=="admin" && <Navbar page={page} setPage={setPage} session={session} onLogout={logout} />}
       {page==="home"      && <HomePage      setPage={setPage} setTrackId={setTrackId} />}
       {page==="services"  && <ServicesPage />}
+      {page==="about"     && <AboutPage     setPage={setPage} />}
+      {page==="careers"   && <CareersPage   setPage={setPage} />}
+      {page==="news"      && <NewsPage      setPage={setPage} />}
+      {page==="partners"  && <PartnersPage  setPage={setPage} />}
+      {page==="privacy"   && <PrivacyPage   setPage={setPage} />}
+      {page==="terms"     && <TermsPage     setPage={setPage} />}
       {page==="track"     && <TrackPage     initialId={trackId} />}
       {page==="login"     && <AuthPage mode="login"    setPage={setPage} onLogin={setSession} />}
       {page==="register"  && <AuthPage mode="register" setPage={setPage} onLogin={setSession} />}
