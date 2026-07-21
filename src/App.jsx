@@ -287,6 +287,20 @@ tr:last-child td{border-bottom:none;}
 
 .kb{animation:kb 16s ease-in-out infinite alternate;}
 @keyframes kb{from{transform:scale(1);}to{transform:scale(1.1);}}
+
+.track-hero{position:relative;height:340px;overflow:hidden;}
+.track-hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.track-hero-tint{position:absolute;inset:0;background:linear-gradient(100deg, rgba(10,10,11,.86) 0%, rgba(10,10,11,.6) 45%, rgba(10,10,11,.28) 100%);}
+.track-hero-content{position:relative;z-index:2;max-width:900px;margin:0 auto;height:100%;display:flex;flex-direction:column;justify-content:center;padding:0 20px;}
+@media(max-width:720px){.track-hero{height:300px;}}
+
+.auth-wrap{display:grid;grid-template-columns:1fr 1fr;min-height:calc(100vh - 63px);}
+.auth-photo{position:relative;overflow:hidden;}
+.auth-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.auth-photo-tint{position:absolute;inset:0;background:linear-gradient(200deg, rgba(10,10,11,.15) 0%, rgba(10,10,11,.75) 100%);}
+.auth-photo-content{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:flex-end;padding:48px;}
+.auth-form-side{display:flex;align-items:center;justify-content:center;padding:40px 20px;}
+@media(max-width:900px){.auth-wrap{grid-template-columns:1fr;}.auth-photo{display:none;}}
 @media(prefers-reduced-motion:reduce){.reveal{transition:none;opacity:1;transform:none;}.ticker-track{animation:none;}.kb{animation:none;}}
 
 /* Navbar mobile menu */
@@ -1195,7 +1209,7 @@ function TrackPage(props) {
     setLoading(true); setErr(""); setShip(null);
     setTimeout(function(){
       var f = DB.findByTracking(val.trim());
-      if (f) setShip(Object.assign({},f)); else setErr("No shipment found. Please check the tracking ID.");
+      if (f) setShip(Object.assign({},f)); else setErr("No shipment found. Double-check the tracking ID and try again.");
       setLoading(false); setSearched(true);
     }, 400);
   }, [val]);
@@ -1204,50 +1218,57 @@ function TrackPage(props) {
 
   return (
     <div className="fade">
-      <section style={{background:"#111",padding:"52px 20px 58px",borderBottom:"2px solid #111"}}>
-        <div style={{maxWidth:680,margin:"0 auto"}}>
-          <div style={{fontSize:10,fontWeight:700,color:"#f59e0b",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>Real-Time Tracking</div>
-          <h1 style={{color:"#fff",fontSize:38,fontWeight:900,letterSpacing:"-0.03em",marginBottom:8}}>Track Your Shipment</h1>
-          <p style={{color:"rgba(255,255,255,.45)",marginBottom:22,fontSize:14}}>Full history — every location, status and customs event preserved</p>
-          <div style={{display:"flex",gap:10}}>
-            <input className="inp" value={val} onChange={function(e){setVal(e.target.value);}}
-              placeholder="e.g. YVC-2024-001847"
-              style={{flex:1,background:"rgba(255,255,255,.07)",border:"1.5px solid rgba(255,255,255,.15)",color:"#fff",fontSize:15}}
-              onKeyDown={function(e){if(e.key==="Enter")doTrack();}} />
-            <button className="btn btn-y" style={{padding:"11px 24px"}} onClick={doTrack} disabled={loading}>{loading?"...":"Track"}</button>
+      <div className="track-hero">
+        <Photo id="1578575437130-527eed3abbec" seed="trackhero" alt="Cargo ship at port" w={1600} h={700} className="kb" />
+        <div className="track-hero-tint" />
+        <div className="track-hero-content">
+          <div className="eyebrow-line" style={{justifyContent:"flex-start"}}><span>Real-Time Tracking</span></div>
+          <h1 style={{color:"#fff",fontSize:34,fontWeight:800,letterSpacing:"-0.02em",marginBottom:8}}>Track your shipment</h1>
+          <p style={{color:"rgba(255,255,255,.65)",marginBottom:22,fontSize:14,maxWidth:440}}>Full history — every location, status and customs event, preserved.</p>
+          <div className="glass-panel" style={{maxWidth:520,padding:16}}>
+            <div style={{display:"flex",gap:9}}>
+              <input className="inp" value={val} onChange={function(e){setVal(e.target.value);}}
+                placeholder="e.g. YVC-2024-001847"
+                style={{flex:1,background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.2)",color:"#fff",fontSize:14}}
+                onKeyDown={function(e){if(e.key==="Enter")doTrack();}} />
+              <button className="btn btn-y" style={{padding:"11px 22px"}} onClick={doTrack} disabled={loading}>{loading?"…":"Track"}</button>
+            </div>
+            <p style={{color:"rgba(255,255,255,.4)",fontSize:10,marginTop:10,fontWeight:600,letterSpacing:"0.03em"}}>TRY: YVC-2024-001847 · YVC-2024-003291 · YVC-2024-005512</p>
           </div>
-          <p style={{color:"rgba(255,255,255,.2)",fontSize:10,marginTop:8,fontWeight:600}}>TRY: YVC-2024-001847 — YVC-2024-003291 — YVC-2024-005512</p>
         </div>
-      </section>
-      <section style={{padding:"36px 20px 56px",background:"#fff",minHeight:280}}>
+      </div>
+
+      <section style={{padding:"48px 20px 64px",background:"#fff",minHeight:280}}>
         <div style={{maxWidth:900,margin:"0 auto"}}>
           {err && (
-            <div style={{background:"#fee2e2",border:"2px solid #dc2626",borderRadius:12,padding:"16px 20px",display:"flex",gap:12,alignItems:"center"}}>
-              <div><div style={{fontWeight:800,color:"#dc2626"}}>Not Found</div><div style={{color:"#dc2626",fontSize:13}}>{err}</div></div>
-            </div>
+            <Reveal>
+              <div style={{background:"#fef2f2",border:"1px solid #fca5a5",borderRadius:12,padding:"16px 20px",display:"flex",gap:12,alignItems:"center"}}>
+                <div><div style={{fontWeight:700,color:"#dc2626",fontSize:13}}>Not found</div><div style={{color:"#b91c1c",fontSize:13,marginTop:2}}>{err}</div></div>
+              </div>
+            </Reveal>
           )}
           {ship && (
             <div className="fade">
-              <div className="card" style={{marginBottom:18}}>
+              <div className="card" style={{marginBottom:18,border:"1px solid var(--g3)",boxShadow:"0 1px 3px rgba(0,0,0,.04)"}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:14,marginBottom:20}}>
                   <div>
-                    <div style={{fontSize:10,color:"#525252",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:5}}>Tracking ID</div>
-                    <div className="mono" style={{background:"#111",color:"#f59e0b",fontSize:17,fontWeight:700,padding:"5px 13px",borderRadius:8,display:"inline-block"}}>{ship.trackingId}</div>
+                    <div style={{fontSize:10,color:"#a3a3a3",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>Tracking ID</div>
+                    <div className="mono" style={{background:"#111",color:"#f59e0b",fontSize:16,fontWeight:700,padding:"6px 14px",borderRadius:8,display:"inline-block"}}>{ship.trackingId}</div>
                   </div>
                   <div style={{textAlign:"right"}}>
-                    <div style={{fontSize:10,color:"#525252",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:5}}>Est. Delivery</div>
-                    <div style={{fontWeight:800,fontSize:14,color:"#111"}}>{fmtDate(ship.estimatedDelivery)}</div>
-                    <div style={{marginTop:5}}><SBadge status={ship.status} /></div>
+                    <div style={{fontSize:10,color:"#a3a3a3",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>Est. Delivery</div>
+                    <div style={{fontWeight:700,fontSize:14,color:"#111"}}>{fmtDate(ship.estimatedDelivery)}</div>
+                    <div style={{marginTop:6}}><SBadge status={ship.status} /></div>
                   </div>
                 </div>
                 <TrackingTimeline shipment={ship} />
               </div>
               <div className="g2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
-                <div className="card">
-                  <div style={{fontSize:10,fontWeight:700,color:"#525252",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:14}}>Shipment Info</div>
+                <div className="card" style={{border:"1px solid var(--g3)",boxShadow:"0 1px 3px rgba(0,0,0,.04)"}}>
+                  <div style={{fontSize:10,fontWeight:700,color:"#a3a3a3",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:14}}>Shipment Info</div>
                   {[["Service",ship.service],["Weight",ship.weight],["Description",ship.description],["Origin",ship.origin],["Destination",ship.destination]].map(function(item){
                     return (
-                      <div key={item[0]} style={{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:"1px solid #f4f4f4"}}>
+                      <div key={item[0]} style={{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid var(--g2)"}}>
                         <span style={{color:"#a3a3a3",fontSize:11,fontWeight:700,textTransform:"uppercase"}}>{item[0]}</span>
                         <span style={{fontWeight:700,fontSize:12,color:"#111",textAlign:"right",maxWidth:200}}>{item[1]||"—"}</span>
                       </div>
@@ -1257,24 +1278,26 @@ function TrackPage(props) {
                 <div className="card-k">
                   <div style={{fontSize:10,fontWeight:700,color:"#f59e0b",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:14}}>Parties</div>
                   <div style={{marginBottom:16}}>
-                    <div style={{color:"rgba(255,255,255,.35)",fontSize:10,fontWeight:700,textTransform:"uppercase",marginBottom:4}}>Sender</div>
-                    <div style={{fontWeight:800,fontSize:14,color:"#fff"}}>{ship.senderName}</div>
-                    <div style={{color:"rgba(255,255,255,.45)",fontSize:12,marginTop:2}}>{ship.origin}</div>
+                    <div style={{color:"rgba(255,255,255,.4)",fontSize:10,fontWeight:700,textTransform:"uppercase",marginBottom:4}}>Sender</div>
+                    <div style={{fontWeight:700,fontSize:14,color:"#fff"}}>{ship.senderName}</div>
+                    <div style={{color:"rgba(255,255,255,.5)",fontSize:12,marginTop:2}}>{ship.origin}</div>
                   </div>
-                  <div style={{borderTop:"1px dashed rgba(255,255,255,.12)",paddingTop:16}}>
-                    <div style={{color:"rgba(255,255,255,.35)",fontSize:10,fontWeight:700,textTransform:"uppercase",marginBottom:4}}>Receiver</div>
-                    <div style={{fontWeight:800,fontSize:14,color:"#fff"}}>{ship.receiverName}</div>
-                    <div style={{color:"rgba(255,255,255,.45)",fontSize:12,marginTop:2}}>{ship.destination}</div>
+                  <div style={{borderTop:"1px dashed rgba(255,255,255,.14)",paddingTop:16}}>
+                    <div style={{color:"rgba(255,255,255,.4)",fontSize:10,fontWeight:700,textTransform:"uppercase",marginBottom:4}}>Receiver</div>
+                    <div style={{fontWeight:700,fontSize:14,color:"#fff"}}>{ship.receiverName}</div>
+                    <div style={{color:"rgba(255,255,255,.5)",fontSize:12,marginTop:2}}>{ship.destination}</div>
                   </div>
                 </div>
               </div>
             </div>
           )}
           {!searched && !loading && (
-            <div style={{textAlign:"center",padding:"52px 0",color:"#a3a3a3"}}>
-              <div style={{fontSize:48,marginBottom:12}}>📦</div>
-              <div style={{fontWeight:700,fontSize:15}}>Enter a tracking ID above to begin</div>
-            </div>
+            <Reveal>
+              <div style={{textAlign:"center",padding:"52px 0",color:"#a3a3a3"}}>
+                <div style={{fontSize:13,fontWeight:600,letterSpacing:"0.04em",textTransform:"uppercase",marginBottom:6,color:"#f59e0b"}}>Standing by</div>
+                <div style={{fontWeight:700,fontSize:16,color:"#374151"}}>Enter a tracking ID above to begin</div>
+              </div>
+            </Reveal>
           )}
         </div>
       </section>
@@ -1287,26 +1310,31 @@ function AuthPage(props) {
   var [form,    setForm]    = useState({name:"",email:"",password:"",confirm:""});
   var [err,     setErr]     = useState("");
   var [loading, setLoading] = useState(false);
+  var [showPw,  setShowPw]  = useState(false);
   function h(k){ return function(e){ setForm(function(f){ var o=Object.assign({},f); o[k]=e.target.value; return o; }); }; }
+  var emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   function submit() {
     setErr("");
+    var name = form.name.trim(), email = form.email.trim().toLowerCase();
     if (mode==="register") {
-      if (!form.name||!form.email||!form.password) return setErr("All fields required");
-      if (form.password!==form.confirm) return setErr("Passwords do not match");
-      if (form.password.length<6) return setErr("Minimum 6 characters");
+      if (!name||!email||!form.password) return setErr("All fields are required.");
+      if (!emailOk.test(email)) return setErr("Enter a valid email address.");
+      if (form.password!==form.confirm) return setErr("Passwords do not match.");
+      if (form.password.length<6) return setErr("Password must be at least 6 characters.");
       setLoading(true);
       setTimeout(function(){
-        var r = Auth.register(form.name,form.email,form.password);
+        var r = Auth.register(name,email,form.password);
         if (r.error) { setErr(r.error); setLoading(false); return; }
-        var res = Auth.login(form.email,form.password);
+        var res = Auth.login(email,form.password);
         onLogin(res.session); setPage("dashboard");
       }, 400);
     } else {
-      if (!form.email||!form.password) return setErr("Email and password required");
+      if (!email||!form.password) return setErr("Email and password are required.");
+      if (!emailOk.test(email)) return setErr("Enter a valid email address.");
       setLoading(true);
       setTimeout(function(){
-        var r = Auth.login(form.email,form.password);
+        var r = Auth.login(email,form.password);
         if (r.error) { setErr(r.error); setLoading(false); return; }
         onLogin(r.session); setPage(r.session.role==="admin"?"admin":"dashboard");
       }, 400);
@@ -1314,26 +1342,48 @@ function AuthPage(props) {
   }
 
   return (
-    <div className="fade" style={{minHeight:"80vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"40px 20px"}}>
-      <div style={{width:"100%",maxWidth:400}}>
-        <div style={{textAlign:"center",marginBottom:24}}>
-          <div style={{display:"flex",justifyContent:"center",marginBottom:14}}><YLogo size={48} /></div>
-          <h1 style={{fontWeight:900,fontSize:24,color:"#111"}}>{mode==="login"?"Welcome back":"Create account"}</h1>
+    <div className="fade auth-wrap">
+      <div className="auth-photo">
+        <Photo id="1494412574745-6e39fc09b28d" seed="authphoto" alt="Cargo containers at port" w={900} h={1200} className="kb" />
+        <div className="auth-photo-tint" />
+        <div className="auth-photo-content">
+          <div className="eyebrow-line" style={{justifyContent:"flex-start"}}><span>YvexCargo</span></div>
+          <p style={{color:"#fff",fontSize:22,fontWeight:700,lineHeight:1.3,maxWidth:320}}>Every shipment, logged the moment it moves.</p>
         </div>
-        <div style={{border:"2px solid #111",borderRadius:16,padding:26}}>
-          {mode==="register" && <div className="fg"><label className="lbl">Full Name</label><input className="inp" placeholder="John Smith" value={form.name} onChange={h("name")} /></div>}
-          <div className="fg"><label className="lbl">Email</label><input className="inp" type="email" placeholder="you@example.com" value={form.email} onChange={h("email")} /></div>
-          <div className="fg"><label className="lbl">Password</label><input className="inp" type="password" placeholder="••••••••" value={form.password} onChange={h("password")} onKeyDown={function(e){if(e.key==="Enter")submit();}} /></div>
-          {mode==="register" && <div className="fg"><label className="lbl">Confirm Password</label><input className="inp" type="password" placeholder="••••••••" value={form.confirm} onChange={h("confirm")} /></div>}
-          {err && <div style={{background:"#fee2e2",border:"1.5px solid #dc2626",color:"#dc2626",padding:"9px 13px",borderRadius:8,fontSize:12,fontWeight:700,marginBottom:12}}>{err}</div>}
-          <button className="btn btn-y" style={{width:"100%",justifyContent:"center",padding:13}} onClick={submit} disabled={loading}>{loading?"Please wait...":mode==="login"?"Sign In":"Create Account"}</button>
+      </div>
+      <div className="auth-form-side">
+        <div style={{width:"100%",maxWidth:380}}>
+          <div style={{marginBottom:28}}>
+            <div style={{display:"flex",marginBottom:16}}><YLogo size={40} /></div>
+            <h1 style={{fontWeight:800,fontSize:26,color:"#111",letterSpacing:"-0.02em",marginBottom:6}}>{mode==="login"?"Welcome back":"Create your account"}</h1>
+            <p style={{color:"#525252",fontSize:13}}>{mode==="login"?"Sign in to track and manage your shipments.":"Free to join — start booking shipments in minutes."}</p>
+          </div>
+          <div style={{border:"1px solid var(--g3)",borderRadius:14,padding:26,boxShadow:"0 1px 3px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.04)"}}>
+            {mode==="register" && <div className="fg"><label className="lbl">Full Name</label><input className="inp" placeholder="John Smith" value={form.name} onChange={h("name")} /></div>}
+            <div className="fg"><label className="lbl">Email</label><input className="inp" type="email" placeholder="you@example.com" value={form.email} onChange={h("email")} /></div>
+            <div className="fg">
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <label className="lbl" style={{marginBottom:5}}>Password</label>
+                {mode==="login" && <a href="mailto:support@yvexcargo.com?subject=Password%20reset" style={{fontSize:11,color:"#f59e0b",fontWeight:700,textDecoration:"none",marginBottom:5}}>Forgot password?</a>}
+              </div>
+              <div style={{position:"relative"}}>
+                <input className="inp" type={showPw?"text":"password"} placeholder="••••••••" value={form.password} onChange={h("password")}
+                  style={{paddingRight:56}}
+                  onKeyDown={function(e){if(e.key==="Enter")submit();}} />
+                <span onClick={function(){setShowPw(!showPw);}} style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",fontSize:11,fontWeight:700,color:"#a3a3a3",cursor:"pointer",userSelect:"none"}}>{showPw?"Hide":"Show"}</span>
+              </div>
+            </div>
+            {mode==="register" && <div className="fg"><label className="lbl">Confirm Password</label><input className="inp" type={showPw?"text":"password"} placeholder="••••••••" value={form.confirm} onChange={h("confirm")} onKeyDown={function(e){if(e.key==="Enter")submit();}} /></div>}
+            {err && <div style={{background:"#fef2f2",border:"1px solid #fca5a5",color:"#b91c1c",padding:"10px 13px",borderRadius:8,fontSize:12,fontWeight:600,marginBottom:14}}>{err}</div>}
+            <button className="btn btn-y" style={{width:"100%",justifyContent:"center",padding:13}} onClick={submit} disabled={loading}>{loading?"Please wait…":mode==="login"?"Sign In":"Create Account"}</button>
+          </div>
+          <p style={{textAlign:"center",color:"#525252",fontSize:13,marginTop:18}}>
+            {mode==="login"?"No account yet?":"Already have an account?"}{" "}
+            <span style={{color:"#111",fontWeight:700,cursor:"pointer",textDecoration:"underline"}} onClick={function(){setErr("");setPage(mode==="login"?"register":"login");}}>
+              {mode==="login"?"Create one":"Sign in"}
+            </span>
+          </p>
         </div>
-        <p style={{textAlign:"center",color:"#525252",fontSize:13,marginTop:16}}>
-          {mode==="login"?"No account?":"Have an account?"}{" "}
-          <span style={{color:"#111",fontWeight:800,cursor:"pointer",textDecoration:"underline"}} onClick={function(){setPage(mode==="login"?"register":"login");}}>
-            {mode==="login"?"Create one":"Sign in"}
-          </span>
-        </p>
       </div>
     </div>
   );
