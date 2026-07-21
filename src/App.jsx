@@ -229,46 +229,65 @@ tr:last-child td{border-bottom:none;}
 
 .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);}
 .reveal.in{opacity:1;transform:translateY(0);}
-.ticker{overflow:hidden;white-space:nowrap;background:#111;border-bottom:2px solid #111;}
-.ticker-track{display:inline-block;padding:9px 0;animation:tick 34s linear infinite;}
-.ticker-item{display:inline-flex;align-items:center;color:rgba(255,255,255,.55);font-size:11px;letter-spacing:.05em;padding:0 18px;}
-.ticker-item b{color:rgba(255,255,255,.9);font-weight:700;margin-right:6px;}
-.ticker-dot{color:var(--y);margin-left:18px;}
-@keyframes tick{from{transform:translateX(0);}to{transform:translateX(-50%);}}
-.hero-photo{position:relative;border-radius:20px;overflow:hidden;border:2px solid #111;height:430px;box-shadow:0 12px 32px rgba(0,0,0,.16);}
-.hero-photo img{width:100%;height:100%;object-fit:cover;display:block;}
-.hero-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 45%,rgba(0,0,0,.65) 100%);}
-.stamp-badge{position:absolute;top:18px;right:18px;z-index:2;border:3px solid #dc2626;color:#dc2626;background:rgba(255,255,255,.94);border-radius:8px;padding:5px 12px;font-family:'Space Mono',monospace;font-weight:800;font-size:11px;letter-spacing:.08em;transform:rotate(-9deg);text-transform:uppercase;}
-.float-track{position:absolute;left:16px;right:16px;bottom:16px;z-index:2;background:rgba(17,17,17,.92);backdrop-filter:blur(6px);border-radius:14px;padding:16px;}
-.svc-card{position:relative;border-radius:16px;overflow:hidden;border:2px solid #111;height:270px;}
-.svc-card img{width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.16,1,.3,1);display:block;}
-.svc-card:hover img{transform:scale(1.1);}
-.svc-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 32%,rgba(0,0,0,.88) 100%);display:flex;flex-direction:column;justify-content:flex-end;padding:18px;}
-.svc-tag{display:inline-block;background:var(--y);color:#111;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:5px;margin-bottom:8px;width:fit-content;}
-.feat-photo{border-radius:20px;overflow:hidden;border:2px solid #111;height:400px;}
-.feat-photo img{width:100%;height:100%;object-fit:cover;display:block;}
-.feat-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:18px;}
-.feat-check{width:26px;height:26px;min-width:26px;background:var(--yp);border:2px solid var(--y);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#92400e;}
-.test-card{border:2px solid #111;border-radius:16px;padding:22px;background:#fff;height:100%;}
-.test-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid #111;}
-.stars{color:var(--y);font-size:13px;letter-spacing:2px;margin-bottom:10px;}
-@media(prefers-reduced-motion:reduce){.reveal{transition:none;opacity:1;transform:none;}.ticker-track{animation:none;}}
-@media(max-width:720px){.hero-photo{height:280px;}.feat-photo{height:260px;}}
 
-.kb{animation:kb 14s ease-in-out infinite alternate;}
-@keyframes kb{from{transform:scale(1);}to{transform:scale(1.12);}}
-.hero-slide{position:absolute;inset:0;opacity:0;transition:opacity 1.1s ease;}
+/* Ticker: slim, quiet, data-forward */
+.ticker{overflow:hidden;white-space:nowrap;background:#0b0b0c;border-bottom:1px solid rgba(245,158,11,.3);}
+.ticker-track{display:inline-block;padding:8px 0;animation:tick 38s linear infinite;}
+.ticker-item{display:inline-flex;align-items:center;color:rgba(255,255,255,.4);font-size:10px;letter-spacing:.08em;padding:0 20px;}
+.ticker-item b{color:rgba(255,255,255,.75);font-weight:700;margin-right:8px;letter-spacing:.12em;}
+.ticker-dot{color:var(--y);margin-left:20px;opacity:.6;}
+@keyframes tick{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+
+/* Hero: full-bleed cinematic photo, scrim for legibility, glass panel */
+.hero-full{position:relative;min-height:600px;overflow:hidden;}
+.hero-slide{position:absolute;inset:0;opacity:0;transition:opacity 1.4s ease;}
 .hero-slide.on{opacity:1;}
-.diag-band{position:relative;background:var(--pu);overflow:hidden;}
-.diag-band::before{content:"";position:absolute;top:0;bottom:0;left:60%;right:-10%;background:var(--y);transform:skewX(-18deg);}
-.diag-band::after{content:"";position:absolute;top:0;bottom:0;left:82%;right:-10%;background:#111;transform:skewX(-18deg);}
-.parallax-banner{position:relative;height:340px;overflow:hidden;border-top:2px solid #111;border-bottom:2px solid #111;}
+.hero-slide img{width:100%;height:100%;object-fit:cover;display:block;}
+.hero-scrim{position:absolute;inset:0;background:linear-gradient(100deg, rgba(10,10,11,.88) 0%, rgba(10,10,11,.6) 40%, rgba(10,10,11,.22) 68%, rgba(10,10,11,.08) 100%);}
+.hero-scrim-b{position:absolute;inset:0;background:linear-gradient(0deg, rgba(10,10,11,.55) 0%, transparent 32%);}
+.hero-content{position:relative;z-index:2;max-width:1200px;margin:0 auto;min-height:600px;display:flex;flex-direction:column;justify-content:center;padding:80px 20px 140px;}
+.glass-panel{background:rgba(255,255,255,.08);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:18px 20px;max-width:420px;}
+.stat-strip{position:absolute;left:0;right:0;bottom:0;z-index:2;background:rgba(10,10,11,.55);backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,.12);}
+.stat-strip-inner{max-width:1200px;margin:0 auto;display:flex;padding:18px 20px;}
+.stat-strip-item{flex:1;padding:0 20px;border-left:1px solid rgba(255,255,255,.14);}
+.stat-strip-item:first-child{border-left:none;padding-left:0;}
+
+/* Service cards: quieter borders, larger editorial photos */
+.svc-card{position:relative;border-radius:6px;overflow:hidden;border:1px solid rgba(0,0,0,.08);height:340px;box-shadow:0 1px 2px rgba(0,0,0,.04);}
+.svc-card img{width:100%;height:100%;object-fit:cover;transition:transform .8s cubic-bezier(.16,1,.3,1);display:block;}
+.svc-card:hover img{transform:scale(1.06);}
+.svc-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,.82) 100%);display:flex;flex-direction:column;justify-content:flex-end;padding:22px;}
+.svc-tag{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--y);margin-bottom:8px;}
+
+/* Feature split */
+.feat-photo{border-radius:6px;overflow:hidden;border:1px solid rgba(0,0,0,.08);height:420px;box-shadow:0 1px 2px rgba(0,0,0,.04);}
+.feat-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+.feat-item{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--g2);}
+.feat-item:last-child{border-bottom:none;}
+.feat-check{width:20px;min-width:20px;font-size:14px;font-weight:700;color:var(--y);padding-top:3px;}
+
+/* Testimonials: quiet, editorial, no boxes */
+.test-card{padding:0 24px 0 0;border-right:1px solid var(--g3);height:100%;}
+.test-quote-mark{font-family:'Space Mono',monospace;font-size:38px;color:var(--y);line-height:.5;display:block;margin-bottom:6px;}
+.test-avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;}
+
+/* Parallax banner: cinematic, single accent, not costume-loud */
+.parallax-banner{position:relative;height:360px;overflow:hidden;}
 .parallax-banner img{position:absolute;inset:-10% 0;width:100%;height:120%;object-fit:cover;}
-.parallax-tint{position:absolute;inset:0;background:linear-gradient(100deg, rgba(77,20,140,.88) 0%, rgba(77,20,140,.55) 45%, rgba(245,158,11,.35) 100%);}
+.parallax-tint{position:absolute;inset:0;background:linear-gradient(100deg, rgba(10,10,11,.82) 0%, rgba(10,10,11,.5) 45%, rgba(10,10,11,.18) 100%);}
 .parallax-content{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:center;padding:0 20px;}
-.orange-tab{display:inline-flex;align-items:center;gap:8px;background:var(--y);color:#111;font-weight:800;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:6px 14px;border-radius:100px;width:fit-content;margin-bottom:14px;}
-.cta-diag{position:relative;background:var(--pu);overflow:hidden;}
-.cta-diag::before{content:"";position:absolute;top:-20%;bottom:-20%;left:-6%;width:38%;background:rgba(255,255,255,.06);transform:skewX(-18deg);}
+.eyebrow-line{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.eyebrow-line span{font-weight:700;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--y);}
+.eyebrow-line::after{content:"";flex:0 0 40px;height:1px;background:var(--y);opacity:.5;}
+
+/* CTA: restrained, single accent underline */
+.cta-quiet{background:#0b0b0c;position:relative;}
+.cta-underline{width:56px;height:3px;background:var(--y);margin:0 auto 22px;}
+
+.kb{animation:kb 16s ease-in-out infinite alternate;}
+@keyframes kb{from{transform:scale(1);}to{transform:scale(1.1);}}
+@media(prefers-reduced-motion:reduce){.reveal{transition:none;opacity:1;transform:none;}.ticker-track{animation:none;}.kb{animation:none;}}
+@media(max-width:720px){.feat-photo{height:260px;}.hero-content{padding:56px 20px 170px;}.stat-strip-inner{flex-wrap:wrap;gap:14px 0;}.stat-strip-item{flex:1 1 50%;border-left:none!important;padding-left:0!important;}.parallax-banner{height:260px;}}
 `;
 
 function YLogo(props) {
@@ -1489,67 +1508,55 @@ function HomePage(props) {
     <div className="fade">
       <Ticker />
 
-      <section style={{background:"#fff",borderBottom:"2px solid #111",padding:"56px 20px 56px"}}>
-        <div style={{maxWidth:1200,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:48,alignItems:"center"}} className="g2">
-          <div>
-            <div style={{display:"inline-flex",alignItems:"center",gap:7,background:"#fef3c7",border:"1.5px solid #f59e0b",borderRadius:100,padding:"5px 14px",marginBottom:18}}>
-              <span style={{width:7,height:7,background:"#f59e0b",borderRadius:"50%",display:"inline-block"}} />
-              <span style={{color:"#92400e",fontSize:11,fontWeight:700,letterSpacing:"0.06em"}}>SERVING 50+ COUNTRIES WORLDWIDE</span>
+      <div className="hero-full">
+        {HERO_PHOTOS.map(function(p, i){
+          return (
+            <div key={p.id} className={"hero-slide" + (i===heroIdx ? " on" : "")}>
+              <Photo id={p.id} seed={p.seed} alt={p.alt} w={1600} h={900} className={i===heroIdx ? "kb" : ""} />
             </div>
-            <h1 style={{color:"#111",fontSize:46,fontWeight:900,lineHeight:1.05,letterSpacing:"-0.03em",marginBottom:16}}>Your cargo,<br />tracked to the<br /><span style={{color:"#f59e0b"}}>last mile.</span></h1>
-            <p style={{color:"#525252",fontSize:15,lineHeight:1.7,marginBottom:28,maxWidth:400}}>Every location change, customs event and status update — recorded and preserved forever.</p>
-            <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-              <button className="btn btn-y" style={{padding:"13px 28px"}} onClick={function(){setPage("register");}}>Create Free Account</button>
-              <button className="btn btn-o" style={{padding:"13px 28px"}} onClick={function(){setPage("track");}}>Track Shipment</button>
-            </div>
+          );
+        })}
+        <div className="hero-scrim" />
+        <div className="hero-scrim-b" />
+        <div className="hero-content">
+          <div className="eyebrow-line"><span>Serving 50+ Countries</span></div>
+          <h1 style={{color:"#fff",fontSize:48,fontWeight:800,lineHeight:1.08,letterSpacing:"-0.02em",marginBottom:16,maxWidth:560}}>Your cargo,<br />tracked to the <span style={{color:"#f59e0b"}}>last mile.</span></h1>
+          <p style={{color:"rgba(255,255,255,.72)",fontSize:15,lineHeight:1.7,marginBottom:28,maxWidth:420}}>Every location change, customs event and status update — recorded and preserved forever.</p>
+          <div style={{display:"flex",gap:12,flexWrap:"wrap",marginBottom:32}}>
+            <button className="btn btn-y" style={{padding:"13px 28px"}} onClick={function(){setPage("register");}}>Create Free Account</button>
+            <button className="btn" style={{padding:"13px 28px",background:"transparent",color:"#fff",border:"1.5px solid rgba(255,255,255,.4)"}} onClick={function(){setPage("track");}}>Track Shipment</button>
           </div>
-          <div className="hero-photo">
-            {HERO_PHOTOS.map(function(p, i){
-              return (
-                <div key={p.id} className={"hero-slide" + (i===heroIdx ? " on" : "")}>
-                  <Photo id={p.id} seed={p.seed} alt={p.alt} w={1000} h={860} className={i===heroIdx ? "kb" : ""} style={{width:"100%",height:"100%",objectFit:"cover"}} />
-                </div>
-              );
-            })}
-            <div className="stamp-badge">In Transit</div>
-            <div className="float-track">
-              <p style={{color:"#f59e0b",fontSize:10,fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:11}}>Quick Track</p>
-              <div style={{display:"flex",gap:9,marginBottom:9}}>
-                <input className="inp" placeholder="Enter tracking ID..." value={t} onChange={function(e){setT(e.target.value);}}
-                  style={{flex:1,background:"rgba(255,255,255,.07)",border:"1.5px solid rgba(255,255,255,.15)",color:"#fff"}}
-                  onKeyDown={function(e){if(e.key==="Enter"&&t){setTrackId(t);setPage("track");}}} />
-                <button className="btn btn-y" onClick={function(){if(t){setTrackId(t);setPage("track");}}}>Track</button>
-              </div>
-              <p style={{color:"rgba(255,255,255,.35)",fontSize:10,fontWeight:600}}>Try: YVC-2024-001847</p>
+          <div className="glass-panel">
+            <p style={{color:"#f59e0b",fontSize:10,fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:11}}>Quick Track</p>
+            <div style={{display:"flex",gap:9}}>
+              <input className="inp" placeholder="Enter tracking ID..." value={t} onChange={function(e){setT(e.target.value);}}
+                style={{flex:1,background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.2)",color:"#fff"}}
+                onKeyDown={function(e){if(e.key==="Enter"&&t){setTrackId(t);setPage("track");}}} />
+              <button className="btn btn-y" onClick={function(){if(t){setTrackId(t);setPage("track");}}}>Track</button>
             </div>
           </div>
         </div>
-      </section>
-
-      <Reveal>
-        <section style={{background:"#fafafa",padding:"36px 20px",borderBottom:"2px solid #111"}}>
-          <div style={{maxWidth:1200,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:10}} className="g4">
+        <div className="stat-strip">
+          <div className="stat-strip-inner">
             {[[50,"K+","Shipments Delivered"],[99.2,"%","On-Time Rate"],[50,"+","Countries Served"],[24,"/7","Support Coverage"]].map(function(item){
               return (
-                <div key={item[2]} style={{border:"2px solid #111",borderRadius:10,padding:"16px 18px",background:"#fff"}}>
-                  <div className="mono" style={{fontSize:24,fontWeight:700}}><CountUp to={item[0]} suffix={item[1]} /></div>
-                  <div style={{color:"#525252",fontSize:11,fontWeight:700,marginTop:3}}>{item[2]}</div>
+                <div key={item[2]} className="stat-strip-item">
+                  <div className="mono" style={{fontSize:20,fontWeight:700,color:"#fff"}}><CountUp to={item[0]} suffix={item[1]} /></div>
+                  <div style={{color:"rgba(255,255,255,.55)",fontSize:11,fontWeight:600,marginTop:2}}>{item[2]}</div>
                 </div>
               );
             })}
           </div>
-        </section>
-      </Reveal>
+        </div>
+      </div>
 
-      <section style={{padding:"64px 20px",borderBottom:"2px solid #111"}}>
+      <section style={{padding:"88px 20px 72px",borderBottom:"1px solid var(--g2)"}}>
         <div style={{maxWidth:1200,margin:"0 auto"}}>
           <Reveal>
-            <div style={{marginBottom:28}}>
-              <div style={{fontSize:10,fontWeight:700,color:"#f59e0b",textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:7}}>What We Move</div>
-              <h2 style={{fontSize:30,fontWeight:900,color:"#111"}}>A Mode For Every Shipment</h2>
-            </div>
+            <div className="eyebrow-line"><span>What We Move</span></div>
+            <h2 style={{fontSize:32,fontWeight:800,color:"#111",marginBottom:36,maxWidth:460}}>A mode for every shipment</h2>
           </Reveal>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(230px, 1fr))",gap:18}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(230px, 1fr))",gap:20}}>
             {SERVICES.map(function(s, i){
               return (
                 <Reveal key={s.title} delay={i*80}>
@@ -1557,8 +1564,8 @@ function HomePage(props) {
                     <Photo id={s.photo} seed={s.seed} alt={s.title} w={500} h={600} />
                     <div className="svc-overlay">
                       <span className="svc-tag">{s.tag}</span>
-                      <div style={{color:"#fff",fontWeight:800,fontSize:16,marginBottom:5}}>{s.title}</div>
-                      <div style={{color:"rgba(255,255,255,.75)",fontSize:12,lineHeight:1.5}}>{s.desc}</div>
+                      <div style={{color:"#fff",fontWeight:700,fontSize:17,marginBottom:6}}>{s.title}</div>
+                      <div style={{color:"rgba(255,255,255,.7)",fontSize:12,lineHeight:1.5}}>{s.desc}</div>
                     </div>
                   </div>
                 </Reveal>
@@ -1573,25 +1580,25 @@ function HomePage(props) {
         <div className="parallax-tint" />
         <div className="parallax-content" style={{maxWidth:1200,margin:"0 auto"}}>
           <Reveal>
-            <span className="orange-tab">Express Network</span>
-            <h2 style={{color:"#fff",fontSize:34,fontWeight:900,letterSpacing:"-0.02em",maxWidth:520,lineHeight:1.1}}>On time.<br />Every time. Anywhere.</h2>
+            <div className="eyebrow-line"><span>Express Network</span></div>
+            <h2 style={{color:"#fff",fontSize:32,fontWeight:800,letterSpacing:"-0.02em",maxWidth:520,lineHeight:1.15}}>On time. Every time. Anywhere.</h2>
           </Reveal>
         </div>
       </div>
 
-      <section style={{background:"#fafafa",padding:"56px 20px",borderBottom:"2px solid #111"}}>
+      <section style={{padding:"72px 20px",borderBottom:"1px solid var(--g2)"}}>
         <div style={{maxWidth:1200,margin:"0 auto"}}>
           <Reveal>
-            <div style={{fontSize:10,fontWeight:700,color:"#f59e0b",textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:7}}>Tracking Pipeline</div>
-            <h2 style={{fontSize:28,fontWeight:900,color:"#111",marginBottom:22}}>6-Stage Logistics Flow</h2>
+            <div className="eyebrow-line"><span>Tracking Pipeline</span></div>
+            <h2 style={{fontSize:28,fontWeight:800,color:"#111",marginBottom:28}}>6-Stage Logistics Flow</h2>
           </Reveal>
-          <div style={{display:"flex",overflowX:"auto",gap:0}}>
+          <div style={{display:"flex",overflowX:"auto",gap:12}}>
             {STATUS_FLOW.map(function(s,i){
               return (
-                <Reveal key={s.key} delay={i*70} style={{flex:"1 0 120px"}}>
-                  <div style={{border:"2px solid #111",borderLeft:i>0?"none":"2px solid #111",borderRadius:i===0?"12px 0 0 12px":i===5?"0 12px 12px 0":0,padding:"14px 12px",background:i===0?"#f59e0b":i===3?"#fce7f3":"#fff",height:"100%"}}>
-                    <div style={{fontSize:20,marginBottom:6}}>{s.icon}</div>
-                    <div style={{fontWeight:800,fontSize:10,color:"#111",textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:3}}>{s.label}</div>
+                <Reveal key={s.key} delay={i*70} style={{flex:"1 0 130px"}}>
+                  <div style={{border:"1px solid var(--g3)",borderRadius:10,padding:"16px 14px",background:i===0?"var(--yp)":"#fff",height:"100%"}}>
+                    <div style={{fontSize:20,marginBottom:8}}>{s.icon}</div>
+                    <div style={{fontWeight:700,fontSize:10,color:"#111",textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:4}}>{s.label}</div>
                     <div style={{fontSize:10,color:"#525252",lineHeight:1.5}}>{s.desc}</div>
                   </div>
                 </Reveal>
@@ -1601,8 +1608,8 @@ function HomePage(props) {
         </div>
       </section>
 
-      <section style={{padding:"64px 20px",borderBottom:"2px solid #111"}}>
-        <div style={{maxWidth:1200,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:48,alignItems:"center"}} className="g2">
+      <section style={{padding:"88px 20px",borderBottom:"1px solid var(--g2)"}}>
+        <div style={{maxWidth:1200,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:56,alignItems:"center"}} className="g2">
           <Reveal>
             <div className="feat-photo">
               <Photo id="1586528116311-ad8dd3c8310d" seed="warehouseworkers" alt="Logistics team checking shipment" w={800} h={700} className="kb" />
@@ -1610,13 +1617,13 @@ function HomePage(props) {
           </Reveal>
           <Reveal delay={120}>
             <div>
-              <div style={{fontSize:10,fontWeight:700,color:"#f59e0b",textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:7}}>Why Ship With Us</div>
-              <h2 style={{fontSize:28,fontWeight:900,color:"#111",marginBottom:20}}>Built For Businesses That Ship Often</h2>
+              <div className="eyebrow-line"><span>Why Ship With Us</span></div>
+              <h2 style={{fontSize:28,fontWeight:800,color:"#111",marginBottom:8}}>Built for businesses that ship often</h2>
               {FEATURES.map(function(f){
                 return (
                   <div key={f} className="feat-item">
-                    <div className="feat-check">{"\u2713"}</div>
-                    <div style={{color:"#525252",fontSize:13,lineHeight:1.6,paddingTop:3}}>{f}</div>
+                    <div className="feat-check">{"\u2013"}</div>
+                    <div style={{color:"#374151",fontSize:13,lineHeight:1.6}}>{f}</div>
                   </div>
                 );
               })}
@@ -1625,25 +1632,25 @@ function HomePage(props) {
         </div>
       </section>
 
-      <section style={{background:"#fafafa",padding:"64px 20px",borderBottom:"2px solid #111"}}>
+      <section style={{padding:"88px 20px",borderBottom:"1px solid var(--g2)"}}>
         <div style={{maxWidth:1200,margin:"0 auto"}}>
           <Reveal>
-            <div style={{textAlign:"center",marginBottom:32}}>
-              <div style={{fontSize:10,fontWeight:700,color:"#f59e0b",textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:7}}>Trusted By Shippers</div>
-              <h2 style={{fontSize:28,fontWeight:900,color:"#111"}}>What Our Customers Say</h2>
+            <div style={{marginBottom:40}}>
+              <div className="eyebrow-line"><span>Trusted By Shippers</span></div>
+              <h2 style={{fontSize:28,fontWeight:800,color:"#111",maxWidth:440}}>What our customers say</h2>
             </div>
           </Reveal>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(260px, 1fr))",gap:18}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(260px, 1fr))",gap:0}}>
             {TESTIMONIALS.map(function(tm, i){
               return (
                 <Reveal key={tm.name} delay={i*90}>
-                  <div className="test-card">
-                    <div className="stars">{"\u2605\u2605\u2605\u2605\u2605"}</div>
-                    <p style={{color:"#374151",fontSize:13,lineHeight:1.7,marginBottom:18}}>{"\u201c"}{tm.quote}{"\u201d"}</p>
+                  <div className="test-card" style={i===TESTIMONIALS.length-1?{borderRight:"none",paddingRight:0}:{}}>
+                    <span className="test-quote-mark">{"\u201c"}</span>
+                    <p style={{color:"#374151",fontSize:14,lineHeight:1.75,marginBottom:22,fontStyle:"italic"}}>{tm.quote}</p>
                     <div style={{display:"flex",alignItems:"center",gap:10}}>
-                      <Photo id={tm.photo} seed={tm.seed} alt={tm.name} w={120} h={120} className="test-avatar" style={{width:44,height:44,borderRadius:"50%",objectFit:"cover",border:"2px solid #111"}} />
+                      <Photo id={tm.photo} seed={tm.seed} alt={tm.name} w={120} h={120} className="test-avatar" style={{width:38,height:38,borderRadius:"50%",objectFit:"cover"}} />
                       <div>
-                        <div style={{fontWeight:800,fontSize:13,color:"#111"}}>{tm.name}</div>
+                        <div style={{fontWeight:700,fontSize:13,color:"#111"}}>{tm.name}</div>
                         <div style={{fontSize:11,color:"#a3a3a3"}}>{tm.role}</div>
                       </div>
                     </div>
@@ -1655,11 +1662,12 @@ function HomePage(props) {
         </div>
       </section>
 
-      <section className="cta-diag" style={{padding:"56px 20px"}}>
+      <section className="cta-quiet" style={{padding:"72px 20px"}}>
         <Reveal>
-          <div style={{maxWidth:540,margin:"0 auto",textAlign:"center",position:"relative",zIndex:2}}>
-            <h2 style={{color:"#fff",fontSize:32,fontWeight:900,letterSpacing:"-0.03em",marginBottom:12}}>Ready to Ship Globally?</h2>
-            <p style={{color:"rgba(255,255,255,.65)",fontSize:14,marginBottom:24}}>Join thousands of businesses that trust YvexCargo.</p>
+          <div style={{maxWidth:540,margin:"0 auto",textAlign:"center"}}>
+            <div className="cta-underline" />
+            <h2 style={{color:"#fff",fontSize:32,fontWeight:800,letterSpacing:"-0.02em",marginBottom:12}}>Ready to ship globally?</h2>
+            <p style={{color:"rgba(255,255,255,.55)",fontSize:14,marginBottom:26}}>Join thousands of businesses that trust YvexCargo.</p>
             <button className="btn btn-y" style={{fontSize:14,padding:"13px 36px"}} onClick={function(){setPage("register");}}>Create Free Account</button>
           </div>
         </Reveal>
