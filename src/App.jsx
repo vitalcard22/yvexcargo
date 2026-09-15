@@ -1430,122 +1430,6 @@ function AuthPage(props) {
   );
 }
 
-function SupportChat(props) {
-  var session = props.session;
-  var [open,    setOpen]    = useState(false);
-  var [input,   setInput]   = useState("");
-  var [loading, setLoading] = useState(false);
-  var [messages,setMessages]= useState([{role:"assistant",content:"Hi! I am the YvexCargo AI assistant.\n\nI can help you with:\n- Tracking your shipment\n- Customs check information\n- Delivery estimates\n- Service questions\n\nWhat can I help you with today?"}]);
-  var bottomRef = useRef(null);
-  var taRef     = useRef(null);
-
-  useEffect(function(){
-    if (open && bottomRef.current) bottomRef.current.scrollIntoView({behavior:"smooth"});
-  }, [messages, open]);
-
-  var SYSTEM = "You are a helpful customer support assistant for YvexCargo, an international logistics and cargo company.\n\nCompany info:\n- Phone: +1 509 305 2716\n- Email: support@yvexcargo.com\n- Address: New York City, USA\n- Hours: Mon-Fri 8am-6pm\n- Founded: 2006\n- Services: Air Freight (1-5 days, from $45/kg), Sea Freight (15-45 days, from $8/kg), Road Delivery (1-7 days, from $1.5/kg), Express Courier (24-48hrs, from $35), Warehousing (from $150/mo)\n\nStatuses in order: Order Placed, In Process, In Transit, Customs Check, Out for Delivery, Delivered.\n\nCustoms Check means shipment is under inspection. Customers should wait. Documents may be required.\n\nTracking code format: YVC-YEAR-XXXXXX\n\n"+(session?"Logged-in user: "+session.name+" ("+session.email+").":"User is not logged in.")+"\n\nBe concise, warm and professional. Never fabricate tracking data.";
-
-  function send() {
-    var text = input.trim();
-    if (!text || loading) return;
-    setInput("");
-    if (taRef.current) taRef.current.style.height = "auto";
-    var updated = messages.concat([{role:"user",content:text}]);
-    setMessages(updated);
-    setLoading(true);
-    fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        messages: updated.map(function(m){ return { role: m.role, content: m.content }; })
-      }),
-    }).then(function(res){ return res.json(); }).then(function(data){
-      var reply = data.content || "Sorry, I could not get a response. Please try again.";
-      setMessages(function(prev){ return prev.concat([{ role:"assistant", content:reply }]); });
-      setLoading(false);
-    }).catch(function(){
-      setMessages(function(prev){ return prev.concat([{ role:"assistant", content:"I am having trouble connecting. Please email support@yvexcargo.com or call +1 509 305 2716." }]); });
-      setLoading(false);
-    });
-  }
-
-  var quickPrompts = ["Track my shipment","Customs check help","Delivery timeframes","Contact support","Service pricing"];
-
-  return (
-    <>
-      <button onClick={function(){setOpen(function(o){return !o;});}}
-        style={{position:"fixed",bottom:24,right:24,zIndex:9000,width:58,height:58,borderRadius:"50%",background:open?"#111":"#f59e0b",color:open?"#f59e0b":"#111",fontSize:24,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 20px rgba(0,0,0,.25)",border:"2px solid #111",transition:"all .2s"}}
-        title={open?"Close chat":"AI Support"}>
-        {open ? "X" : "?"}
-      </button>
-      {!open && <span style={{position:"fixed",bottom:72,right:24,zIndex:9001,background:"#ef4444",color:"#fff",borderRadius:100,fontSize:10,fontWeight:800,padding:"2px 7px",border:"2px solid #fff",pointerEvents:"none"}}>AI</span>}
-
-      {open && (
-        <div style={{position:"fixed",bottom:92,right:24,zIndex:8999,width:370,maxWidth:"calc(100vw - 32px)",background:"#fff",border:"2px solid #111",borderRadius:20,boxShadow:"0 8px 40px rgba(0,0,0,.18)",display:"flex",flexDirection:"column",height:520}}>
-          <div style={{background:"#111",borderRadius:"18px 18px 0 0",padding:"14px 18px",display:"flex",alignItems:"center",gap:12}}>
-            <div style={{width:38,height:38,background:"#f59e0b",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:900,color:"#111"}}>AI</div>
-            <div style={{flex:1}}>
-              <div style={{color:"#fff",fontWeight:800,fontSize:14}}>YvexCargo AI Support</div>
-              <div style={{display:"flex",alignItems:"center",gap:5,marginTop:2}}>
-                <span style={{width:7,height:7,background:"#4ade80",borderRadius:"50%",display:"inline-block"}} />
-                <span style={{color:"rgba(255,255,255,.5)",fontSize:11}}>Online — Powered by Claude</span>
-              </div>
-            </div>
-            <button onClick={function(){setMessages([{role:"assistant",content:"Chat cleared! How can I help you?"}]);}}
-              style={{background:"rgba(255,255,255,.1)",border:"none",color:"rgba(255,255,255,.6)",borderRadius:8,padding:"5px 10px",fontSize:11,fontWeight:600,cursor:"pointer"}}>
-              Clear
-            </button>
-          </div>
-
-          <div style={{flex:1,overflowY:"auto",padding:"14px 13px",display:"flex",flexDirection:"column",gap:11}}>
-            {messages.map(function(m,i){
-              return (
-                <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start",gap:8}}>
-                  {m.role==="assistant" && <div style={{width:28,height:28,background:"#f59e0b",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:900,color:"#111",flexShrink:0,marginTop:2}}>AI</div>}
-                  <div style={{maxWidth:"78%",background:m.role==="user"?"#111":"#f4f4f4",color:m.role==="user"?"#fff":"#111",borderRadius:m.role==="user"?"14px 14px 4px 14px":"14px 14px 14px 4px",padding:"10px 13px",fontSize:13,lineHeight:1.6,whiteSpace:"pre-wrap",wordBreak:"break-word",border:m.role==="user"?"none":"1.5px solid #e5e5e5"}}>
-                    {m.content}
-                  </div>
-                  {m.role==="user" && <div style={{width:28,height:28,background:"#e5e5e5",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,flexShrink:0,marginTop:2,fontWeight:800,color:"#525252"}}>{session?session.name[0].toUpperCase():"?"}</div>}
-                </div>
-              );
-            })}
-            {loading && (
-              <div style={{display:"flex",gap:8}}>
-                <div style={{width:28,height:28,background:"#f59e0b",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:900,color:"#111"}}>AI</div>
-                <div style={{background:"#f4f4f4",border:"1.5px solid #e5e5e5",borderRadius:"14px 14px 14px 4px",padding:"12px 16px",display:"flex",gap:5,alignItems:"center"}}>
-                  {[0,1,2].map(function(ix){return <span key={ix} style={{width:7,height:7,background:"#a3a3a3",borderRadius:"50%",display:"inline-block",animation:"bounce .9s ease "+(ix*.15)+"s infinite"}} />;} )}
-                </div>
-              </div>
-            )}
-            <div ref={bottomRef} />
-          </div>
-
-          {messages.length<=1 && (
-            <div style={{padding:"0 13px 10px",display:"flex",gap:5,flexWrap:"wrap"}}>
-              {quickPrompts.map(function(q){
-                return <button key={q} onClick={function(){setInput(q);if(taRef.current)taRef.current.focus();}} style={{background:"#fef3c7",border:"1.5px solid #f59e0b",color:"#92400e",borderRadius:100,fontSize:11,fontWeight:700,padding:"4px 11px",cursor:"pointer"}}>{q}</button>;
-              })}
-            </div>
-          )}
-
-          <div style={{padding:"12px 13px",borderTop:"2px solid #e5e5e5",display:"flex",gap:8,alignItems:"flex-end"}}>
-            <textarea ref={taRef} value={input} onChange={function(e){setInput(e.target.value);}}
-              onKeyDown={function(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}}
-              onInput={function(e){e.target.style.height="auto";e.target.style.height=Math.min(e.target.scrollHeight,90)+"px";}}
-              placeholder="Ask anything about your shipment..." rows={1}
-              style={{flex:1,border:"1.5px solid #e5e5e5",borderRadius:10,padding:"9px 12px",fontSize:13,resize:"none",fontFamily:"inherit",outline:"none",lineHeight:1.5,maxHeight:90,overflowY:"auto"}} />
-            <button onClick={send} disabled={!input.trim()||loading}
-              style={{width:38,height:38,background:input.trim()&&!loading?"#f59e0b":"#e5e5e5",border:"none",borderRadius:10,fontSize:16,cursor:input.trim()&&!loading?"pointer":"not-allowed",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"background .15s"}}>
-              →
-            </button>
-          </div>
-        </div>
-      )}
-      <style>{`@keyframes bounce{0%,80%,100%{transform:translateY(0);}40%{transform:translateY(-6px);}}`}</style>
-    </>
-  );
-}
-
 function useInView(threshold) {
   var ref = useRef(null);
   var [inView, setInView] = useState(false);
@@ -2249,7 +2133,6 @@ export default function App() {
       {page==="dashboard" && !session  && <AuthPage mode="login" setPage={setPage} onLogin={setSession} />}
       {page==="admin"     &&  session && session.role==="admin"  && <AdminDashboard session={session} setPage={setPage} onLogout={logout} />}
       {page==="admin"     && (!session || session.role!=="admin") && <AuthPage mode="login" setPage={setPage} onLogin={setSession} />}
-      <SupportChat session={session} />
     </>
   );
 }
