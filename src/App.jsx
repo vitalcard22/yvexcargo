@@ -36,65 +36,19 @@ const SEED_USERS = [
   { id:"admin_001", name:"Admin", email:"admin@yvexcargo.com", password:hashPw("qwertyuiop22"), role:"admin", active:true, createdAt:"2024-01-01T00:00:00Z" },
 ];
 
-const SEED_SHIPMENTS = [
-  {
-    id:"s001", trackingId:"YVC-2024-001847", userId:null,
-    senderName:"Schneider Logistics GmbH", receiverName:"James Carter",
-    origin:"Hamburg, Germany", destination:"New York, USA",
-    service:"Sea Freight", weight:"250kg", description:"Electronics", estimatedDelivery:"2024-01-15",
-    status:"Delivered", currentLocation:"New York, USA",
-    createdAt:"2024-01-01T08:00:00Z", updatedAt:"2024-01-15T14:30:00Z",
-    adminNotes:[{id:"n1",text:"Cleared by US customs without issues",visibleToCustomer:true,adminName:"Admin",createdAt:"2024-01-10T09:00:00Z"}],
-    logs:[
-      {id:"l1",status:"Order Placed",    location:"Hamburg, Germany",              note:"Order confirmed. Shipment booked.",                        time:"2024-01-01T08:00:00Z"},
-      {id:"l2",status:"In Process",      location:"Hamburg, Germany",              note:"Received at origin warehouse. Packaging complete.",        time:"2024-01-01T10:00:00Z"},
-      {id:"l3",status:"In Transit",      location:"Hamburg Port, Germany",         note:"Export customs cleared. Loaded on MV Atlantic Star.",      time:"2024-01-03T08:00:00Z"},
-      {id:"l4",status:"Customs Check",   location:"Port Newark, NJ, USA",          note:"Presented to US Customs and Border Protection.",          time:"2024-01-10T07:00:00Z",customsLocation:"Port Newark CBP Office, NJ",customsNote:"Standard inspection. No issues flagged."},
-      {id:"l5",status:"Out for Delivery",location:"YvexCargo Warehouse, New York", note:"US customs cleared. Assigned to delivery agent.",         time:"2024-01-14T09:00:00Z"},
-      {id:"l6",status:"Delivered",       location:"New York, USA",                 note:"Delivered. Signed by James Carter.",                      time:"2024-01-15T14:30:00Z"},
-    ],
-  },
-  {
-    id:"s002", trackingId:"YVC-2024-003291", userId:null,
-    senderName:"Dubois and Fils Trading", receiverName:"Michael Thompson",
-    origin:"Lyon, France", destination:"Chicago, USA",
-    service:"Express Courier", weight:"5kg", description:"Documents and Parcels", estimatedDelivery:"2024-02-20",
-    status:"Out for Delivery", currentLocation:"Chicago, IL",
-    createdAt:"2024-02-17T14:00:00Z", updatedAt:"2024-02-19T16:00:00Z",
-    adminNotes:[],
-    logs:[
-      {id:"l7", status:"Order Placed",    location:"Lyon, France",       note:"Order received and confirmed.",                   time:"2024-02-17T14:00:00Z"},
-      {id:"l8", status:"In Process",      location:"Lyon, France",       note:"Package collected and documented.",               time:"2024-02-18T09:00:00Z"},
-      {id:"l9", status:"In Transit",      location:"CDG Airport, Paris", note:"Departed CDG on flight AF068 to Chicago.",       time:"2024-02-18T18:00:00Z"},
-      {id:"l10",status:"Out for Delivery",location:"Chicago, IL",        note:"Cleared US customs. With local delivery agent.", time:"2024-02-19T16:00:00Z"},
-    ],
-  },
-  {
-    id:"s003", trackingId:"YVC-2024-005512", userId:null,
-    senderName:"BioMed Solutions Ltd", receiverName:"Sophia Mueller",
-    origin:"London, UK", destination:"Berlin, Germany",
-    service:"Air Freight", weight:"18kg", description:"Medical Equipment", estimatedDelivery:"2024-02-28",
-    status:"Customs Check", currentLocation:"Berlin Customs Office",
-    createdAt:"2024-02-19T10:00:00Z", updatedAt:"2024-02-22T11:00:00Z",
-    adminNotes:[
-      {id:"n2",text:"Held — additional CE certification documents required",visibleToCustomer:false,adminName:"Admin",createdAt:"2024-02-22T11:00:00Z"},
-      {id:"n3",text:"Documents submitted. Awaiting officer review.",visibleToCustomer:true,adminName:"Admin",createdAt:"2024-02-23T14:00:00Z"},
-    ],
-    logs:[
-      {id:"l11",status:"Order Placed", location:"London, UK",               note:"Order placed by BioMed Solutions Ltd.",               time:"2024-02-19T10:00:00Z"},
-      {id:"l12",status:"In Process",   location:"London, UK",               note:"Picked up. Export paperwork processed.",              time:"2024-02-20T07:00:00Z"},
-      {id:"l13",status:"In Transit",   location:"Heathrow Airport, London", note:"Departed on flight BA902 to Berlin.",                time:"2024-02-20T22:00:00Z"},
-      {id:"l14",status:"Customs Check",location:"Berlin Customs, Germany",  note:"Presented to German Federal Customs Office.",        time:"2024-02-22T11:00:00Z",customsLocation:"Zollamt Berlin, Wolfener Str. 32",customsNote:"CE certification documents required. Shipment held."},
-    ],
-  },
-];
-
 function dbInit() {
   // Always reset the admin user to ensure credentials stay current
   var users = LS.get("yvc_users") || [];
   var nonAdmins = users.filter(function(u){ return u.role !== "admin"; });
   LS.set("yvc_users", [SEED_USERS[0]].concat(nonAdmins));
-  if (!LS.get("yvc_shipments")) LS.set("yvc_shipments", SEED_SHIPMENTS);
+  if (!LS.get("yvc_shipments")) LS.set("yvc_shipments", []);
+  // One-time cleanup: remove demo shipments seeded by earlier versions of this app
+  if (!LS.get("yvc_demo_cleared")) {
+    var demoIds = ["YVC-2024-001847", "YVC-2024-003291", "YVC-2024-005512"];
+    var current = LS.get("yvc_shipments") || [];
+    LS.set("yvc_shipments", current.filter(function(s){ return demoIds.indexOf(s.trackingId) === -1; }));
+    LS.set("yvc_demo_cleared", true);
+  }
 }
 function dbGetUsers()       { return LS.get("yvc_users") || []; }
 function dbSaveUsers(a)     { LS.set("yvc_users", a); }
@@ -1274,7 +1228,6 @@ function TrackPage(props) {
                 onKeyDown={function(e){if(e.key==="Enter")doTrack();}} />
               <button className="btn btn-y" style={{padding:"11px 22px"}} onClick={doTrack} disabled={loading}>{loading?"…":"Track"}</button>
             </div>
-            <p style={{color:"rgba(255,255,255,.4)",fontSize:10,marginTop:10,fontWeight:600,letterSpacing:"0.03em"}}>TRY: YVC-2024-001847 · YVC-2024-003291 · YVC-2024-005512</p>
           </div>
         </div>
       </div>
