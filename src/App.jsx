@@ -193,16 +193,16 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
 .card{background:#fff;border:2px solid #111;border-radius:14px;padding:22px;box-shadow:0 2px 14px rgba(0,0,0,.07);}
 .card-k{background:#111;border-radius:14px;padding:22px;}
 table{width:100%;border-collapse:collapse;}
-th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:10px 14px;text-align:left;border-bottom:2px solid #111;background:var(--ypp);}
-td{padding:11px 14px;font-size:13px;border-bottom:1px solid var(--g2);color:var(--g5);vertical-align:middle;}
-tr:hover td{background:var(--ypp);}
+th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:11px 14px;text-align:left;border-bottom:1px solid var(--g3);background:#fafafa;color:var(--g5);}
+td{padding:12px 14px;font-size:13px;border-bottom:1px solid var(--g2);color:var(--g5);vertical-align:middle;}
+tr:hover td{background:#fafafa;}
 tr:last-child td{border-bottom:none;}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;}
-.mbox{background:#fff;border-radius:20px;padding:28px;width:100%;max-width:640px;max-height:92vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.18);border:2px solid #111;}
+.mbox{background:#fff;border-radius:20px;padding:28px;width:100%;max-width:640px;max-height:92vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.14);border:1px solid var(--g3);}
 .sidebar{width:230px;min-width:230px;background:#111;min-height:100vh;display:flex;flex-direction:column;}
-.slink{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:8px;color:rgba(255,255,255,.5);font-size:13px;font-weight:600;cursor:pointer;transition:all .13s;margin-bottom:3px;}
-.slink:hover{background:rgba(255,255,255,.07);color:#fff;}
-.slink.on{background:var(--y);color:#111;}
+.slink{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:8px;color:rgba(255,255,255,.5);font-size:13px;font-weight:600;cursor:pointer;transition:all .13s;margin-bottom:3px;border-left:2px solid transparent;}
+.slink:hover{background:rgba(255,255,255,.06);color:#fff;}
+.slink.on{background:rgba(245,158,11,.12);color:#f59e0b;border-left:2px solid #f59e0b;font-weight:700;}
 .nlink{color:var(--g5);font-size:13px;font-weight:600;padding:7px 13px;border-radius:8px;cursor:pointer;transition:all .13s;}
 .nlink:hover{color:#111;background:var(--g2);}
 .nlink.on{color:#111;background:var(--yp);}
@@ -1005,9 +1005,9 @@ function AdminDashboard(props) {
       </div>
 
       <div style={{flex:1,background:"#fff",overflow:"auto"}}>
-        <div style={{borderBottom:"2px solid #111",padding:"14px 24px",background:"#fafafa",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
-          <h2 style={{fontWeight:900,fontSize:17,color:"#111",textTransform:"capitalize"}}>{view}</h2>
-          {msg && <div style={{background:"#fef3c7",border:"1.5px solid #f59e0b",color:"#92400e",padding:"7px 14px",borderRadius:8,fontSize:12,fontWeight:700}}>{msg}</div>}
+        <div style={{borderBottom:"1px solid var(--g3)",padding:"16px 24px",background:"#fff",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
+          <h2 style={{fontWeight:800,fontSize:19,color:"#111",letterSpacing:"-0.01em",textTransform:"capitalize"}}>{view}</h2>
+          {msg && <div style={{background:"var(--yp)",border:"1px solid var(--y)",color:"#92400e",padding:"7px 14px",borderRadius:8,fontSize:12,fontWeight:700}}>{msg}</div>}
         </div>
         <div style={{padding:24}} className="admin-content">
 
@@ -1016,32 +1016,32 @@ function AdminDashboard(props) {
               <div className="g4" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14,marginBottom:22}}>
                 {[{l:"Total",v:stats.total,y:true},{l:"In Transit",v:stats.inTransit},{l:"Customs",v:stats.customs},{l:"Delivered",v:stats.delivered}].map(function(c){
                   return (
-                    <div key={c.l} style={{border:"2px solid #111",borderRadius:12,padding:18,background:c.y?"#f59e0b":"#fff"}}>
-                      <div style={{fontWeight:900,fontSize:28,color:"#111"}}>{c.v}</div>
-                      <div style={{fontSize:10,fontWeight:700,color:"#525252",textTransform:"uppercase",letterSpacing:"0.06em",marginTop:3}}>{c.l}</div>
+                    <div key={c.l} style={{border:"1px solid var(--g3)",borderTop:c.y?"3px solid #f59e0b":"3px solid var(--g3)",borderRadius:12,padding:18,background:"#fff",boxShadow:"0 1px 2px rgba(0,0,0,.03)"}}>
+                      <div style={{fontWeight:800,fontSize:28,color:"#111"}}>{c.v}</div>
+                      <div style={{fontSize:10,fontWeight:700,color:"#a3a3a3",textTransform:"uppercase",letterSpacing:"0.07em",marginTop:3}}>{c.l}</div>
                     </div>
                   );
                 })}
               </div>
               {stats.customs>0 && (
-                <div style={{background:"#fce7f3",border:"2px solid #ec4899",borderRadius:12,padding:"13px 18px",marginBottom:18,display:"flex",gap:12,alignItems:"center"}}>
+                <div style={{background:"#fff",border:"1px solid var(--g3)",borderLeft:"3px solid #f59e0b",borderRadius:10,padding:"14px 18px",marginBottom:18,display:"flex",gap:12,alignItems:"center",flexWrap:"wrap"}}>
                   <div>
-                    <div style={{fontWeight:800,color:"#9d174d"}}>{stats.customs} shipment{stats.customs>1?"s":""} in Customs Check</div>
-                    <div style={{color:"#be185d",fontSize:12,marginTop:2}}>Review and update when clearance confirmed.</div>
+                    <div style={{fontWeight:700,color:"#111",fontSize:14}}>{stats.customs} shipment{stats.customs>1?"s":""} in Customs Check</div>
+                    <div style={{color:"#a3a3a3",fontSize:12,marginTop:2}}>Review and update when clearance confirmed.</div>
                   </div>
-                  <button className="btn btn-g sm" style={{marginLeft:"auto",borderColor:"#ec4899",color:"#9d174d"}} onClick={function(){setView("shipments");}}>View</button>
+                  <button className="btn btn-g sm" style={{marginLeft:"auto"}} onClick={function(){setView("shipments");}}>View</button>
                 </div>
               )}
               <div className="g2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:18}}>
-                <div style={{border:"2px solid #111",borderRadius:14,overflow:"hidden"}}>
-                  <div style={{padding:"13px 18px",background:"#fef3c7",borderBottom:"2px solid #111"}}><h3 style={{fontWeight:800,fontSize:14}}>Recent Shipments</h3></div>
+                <div style={{border:"1px solid var(--g3)",borderRadius:14,overflow:"hidden",boxShadow:"0 1px 2px rgba(0,0,0,.03)"}}>
+                  <div style={{padding:"13px 18px",background:"#fafafa",borderBottom:"1px solid var(--g3)"}}><h3 style={{fontWeight:700,fontSize:13,color:"#111"}}>Recent Shipments</h3></div>
                   <table>
                     <thead><tr><th>Tracking ID</th><th>Status</th><th>Events</th></tr></thead>
                     <tbody>
                       {ships.slice(0,5).map(function(s){
                         return (
                           <tr key={s.id} style={{cursor:"pointer"}} onClick={function(){setDetailId(s.id);}}>
-                            <td><span className="mono" style={{background:"#fef3c7",padding:"2px 7px",borderRadius:5,fontSize:10,fontWeight:700}}>{s.trackingId}</span></td>
+                            <td><span className="mono" style={{background:"var(--yp)",padding:"2px 7px",borderRadius:5,fontSize:10,fontWeight:700}}>{s.trackingId}</span></td>
                             <td><SBadge status={s.status} /></td>
                             <td style={{fontSize:11,fontWeight:700,color:"#f59e0b"}}>{(s.logs||[]).length}</td>
                           </tr>
@@ -1050,7 +1050,7 @@ function AdminDashboard(props) {
                     </tbody>
                   </table>
                 </div>
-                <div style={{border:"2px solid #111",borderRadius:14,padding:20,background:"#111"}}>
+                <div style={{border:"1px solid var(--g3)",borderRadius:14,padding:20,background:"#111",boxShadow:"0 1px 2px rgba(0,0,0,.03)"}}>
                   <div style={{fontSize:11,fontWeight:700,color:"#f59e0b",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:16}}>Pipeline</div>
                   {STATUS_FLOW.map(function(sf){
                     var v=ships.filter(function(s){return s.status===sf.key;}).length;
@@ -1078,7 +1078,7 @@ function AdminDashboard(props) {
                 <span style={{fontSize:12,color:"#525252",fontWeight:600}}>{filtered.length} result{filtered.length!==1?"s":""}</span>
                 <button className="btn btn-y sm" onClick={function(){setShowCreate(true);}}>+ New Shipment</button>
               </div>
-              <div style={{border:"2px solid #111",borderRadius:14,overflow:"hidden"}}>
+              <div style={{border:"1px solid var(--g3)",borderRadius:14,overflow:"hidden",boxShadow:"0 1px 2px rgba(0,0,0,.03)"}}>
                 <div style={{overflowX:"auto"}}>
                   <table>
                     <thead><tr><th>Tracking ID</th><th>Sender / Receiver</th><th>Status</th><th className="hide-sm">Location</th><th>Events</th><th>Actions</th></tr></thead>
@@ -1086,11 +1086,11 @@ function AdminDashboard(props) {
                       {filtered.map(function(s){
                         return (
                           <tr key={s.id}>
-                            <td><span className="mono" style={{background:"#fef3c7",padding:"2px 7px",borderRadius:5,fontSize:11,fontWeight:700,cursor:"pointer"}} onClick={function(){setDetailId(s.id);}}>{s.trackingId}</span></td>
+                            <td><span className="mono" style={{background:"var(--yp)",padding:"2px 7px",borderRadius:5,fontSize:11,fontWeight:700,cursor:"pointer"}} onClick={function(){setDetailId(s.id);}}>{s.trackingId}</span></td>
                             <td style={{fontSize:12}}><div style={{fontWeight:700,color:"#111"}}>{s.senderName}</div><div style={{color:"#a3a3a3"}}>{s.receiverName}</div></td>
                             <td><SBadge status={s.status} /></td>
                             <td className="hide-sm" style={{fontSize:11}}>{s.currentLocation}</td>
-                            <td><span style={{background:"#fef3c7",border:"1px solid #f59e0b",borderRadius:100,fontSize:11,fontWeight:800,padding:"2px 10px",color:"#92400e"}}>{(s.logs||[]).length}</span></td>
+                            <td><span style={{background:"var(--yp)",border:"1px solid var(--y)",borderRadius:100,fontSize:11,fontWeight:700,padding:"2px 10px",color:"#92400e"}}>{(s.logs||[]).length}</span></td>
                             <td>
                               <div style={{display:"flex",gap:5}}>
                                 <button className="btn btn-g sm" onClick={function(){setDetailId(s.id);}}>View</button>
@@ -1110,18 +1110,18 @@ function AdminDashboard(props) {
 
           {view==="users" && (
             <div className="fade">
-              <p style={{color:"#525252",fontWeight:600,marginBottom:16,fontSize:13}}>{users.filter(function(u){return u.role!=="admin";}).length} registered users</p>
-              <div style={{border:"2px solid #111",borderRadius:14,overflow:"hidden"}}>
+              <p style={{color:"#a3a3a3",fontWeight:600,marginBottom:16,fontSize:13}}>{users.filter(function(u){return u.role!=="admin";}).length} registered users</p>
+              <div style={{border:"1px solid var(--g3)",borderRadius:14,overflow:"hidden",boxShadow:"0 1px 2px rgba(0,0,0,.03)"}}>
                 <table>
                   <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th className="hide-sm">Joined</th><th>Actions</th></tr></thead>
                   <tbody>
                     {users.map(function(u){
                       return (
                         <tr key={u.id}>
-                          <td style={{fontWeight:700}}>{u.name}</td>
+                          <td style={{fontWeight:700,color:"#111"}}>{u.name}</td>
                           <td style={{fontSize:12}}>{u.email}</td>
-                          <td><span style={{background:u.role==="admin"?"#f59e0b":"#e5e5e5",color:"#111",padding:"2px 9px",borderRadius:100,fontSize:11,fontWeight:700}}>{u.role}</span></td>
-                          <td><span style={{background:u.active?"#d1fae5":"#fee2e2",color:u.active?"#065f46":"#dc2626",padding:"2px 9px",borderRadius:100,fontSize:11,fontWeight:700}}>{u.active?"Active":"Blocked"}</span></td>
+                          <td><span style={{background:u.role==="admin"?"var(--yp)":"#fafafa",border:"1px solid "+(u.role==="admin"?"var(--y)":"var(--g3)"),color:u.role==="admin"?"#92400e":"#525252",padding:"2px 9px",borderRadius:100,fontSize:11,fontWeight:700}}>{u.role}</span></td>
+                          <td><span style={{background:u.active?"#f0fdf4":"#fef2f2",border:"1px solid "+(u.active?"#86efac":"#fca5a5"),color:u.active?"#15803d":"#b91c1c",padding:"2px 9px",borderRadius:100,fontSize:11,fontWeight:700}}>{u.active?"Active":"Blocked"}</span></td>
                           <td className="hide-sm" style={{fontSize:11,color:"#a3a3a3",fontWeight:600}}>{(u.createdAt||"").split("T")[0]}</td>
                           <td>
                             {u.role!=="admin" && (
