@@ -316,6 +316,22 @@ tr:last-child td{border-bottom:none;}
   .nav-mobile-link.on{color:#111;font-weight:800;}
 }
 
+/* Admin dashboard mobile nav */
+.nav-burger.light span{background:#fff;}
+.admin-topbar{display:none;}
+.admin-mobile-menu{display:none;}
+@media(max-width:900px){
+  .admin-topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:#111;}
+  .sidebar{display:none!important;}
+  .admin-mobile-menu{display:flex;flex-direction:column;background:#111;padding:6px 18px 18px;}
+  .admin-mobile-link{padding:11px 4px;color:rgba(255,255,255,.6);font-weight:600;font-size:14px;cursor:pointer;}
+  .admin-mobile-link.on{color:#f59e0b;font-weight:800;}
+  .admin-content{padding:16px!important;}
+}
+@media(max-width:640px){
+  table{display:block;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;}
+}
+
 /* Broader mobile pass */
 @media(max-width:720px){
   .feat-photo{height:260px;}
@@ -911,7 +927,7 @@ function ShipmentDetailModal(props) {
 }
 
 function AdminDashboard(props) {
-  var session = props.session, setPage = props.setPage;
+  var session = props.session, setPage = props.setPage, onLogout = props.onLogout;
   var [view,       setView]       = useState("overview");
   var [ships,      setShips]      = useState(function(){ return DB.getShipments(); });
   var [users,      setUsers]      = useState(function(){ return DB.getUsers(); });
@@ -920,9 +936,11 @@ function AdminDashboard(props) {
   var [detailId,   setDetailId]   = useState(null);
   var [msg,        setMsg]        = useState("");
   var [search,     setSearch]     = useState("");
+  var [mobileNav,  setMobileNav]  = useState(false);
 
   function refresh() { setShips(DB.getShipments()); setUsers(DB.getUsers()); }
   function flash(m)  { setMsg(m); setTimeout(function(){setMsg("");},3000); }
+  function goView(v) { return function(){ setView(v); setMobileNav(false); }; }
 
   var filtered = ships.filter(function(s){
     return [s.trackingId,s.senderName,s.receiverName,s.status,s.currentLocation||""].some(function(v){return v.toLowerCase().includes(search.toLowerCase());});
@@ -938,7 +956,28 @@ function AdminDashboard(props) {
   var editShip = editShipId ? DB.findShipment(editShipId) : null;
 
   return (
-    <div style={{display:"flex",minHeight:"100vh"}}>
+    <div style={{display:"flex",minHeight:"100vh",flexDirection:"column"}} className="admin-shell">
+      <div className="admin-topbar">
+        <div style={{display:"flex",alignItems:"center",gap:9}}>
+          <Logo inv={true} />
+          <span style={{fontSize:9,color:"rgba(255,255,255,.35)",fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase"}}>Admin</span>
+        </div>
+        <button className="nav-burger light" aria-label="Menu" onClick={function(){setMobileNav(!mobileNav);}}>
+          <span /><span /><span />
+        </button>
+      </div>
+      {mobileNav && (
+        <div className="admin-mobile-menu">
+          {[["overview","Overview"],["shipments","Shipments"],["users","Users"]].map(function(item){
+            return <div key={item[0]} className={"admin-mobile-link "+(view===item[0]?"on":"")} onClick={goView(item[0])}>{item[1]}</div>;
+          })}
+          <div style={{height:1,background:"rgba(255,255,255,.1)",margin:"8px 0"}} />
+          <div className="admin-mobile-link" onClick={function(){setShowCreate(true);setMobileNav(false);}}>+ New Shipment</div>
+          <div className="admin-mobile-link" onClick={function(){setPage("home");}}>Back to Site</div>
+          {onLogout && <div className="admin-mobile-link" onClick={onLogout}>Sign Out</div>}
+        </div>
+      )}
+      <div style={{display:"flex",flex:1,minHeight:0}}>
       <div className="sidebar">
         <div style={{padding:"20px 16px",borderBottom:"1px solid rgba(255,255,255,.09)"}}>
           <Logo inv={true} />
@@ -951,6 +990,7 @@ function AdminDashboard(props) {
           <div style={{borderTop:"1px solid rgba(255,255,255,.08)",marginTop:12,paddingTop:12}}>
             <div className="slink" onClick={function(){setShowCreate(true);}}>+ New Shipment</div>
             <div className="slink" onClick={function(){setPage("home");}}>Back to Site</div>
+            {onLogout && <div className="slink" onClick={onLogout}>Sign Out</div>}
           </div>
         </div>
         <div style={{padding:"14px 16px",borderTop:"1px solid rgba(255,255,255,.08)"}}>
@@ -965,11 +1005,11 @@ function AdminDashboard(props) {
       </div>
 
       <div style={{flex:1,background:"#fff",overflow:"auto"}}>
-        <div style={{borderBottom:"2px solid #111",padding:"14px 24px",background:"#fafafa",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        <div style={{borderBottom:"2px solid #111",padding:"14px 24px",background:"#fafafa",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
           <h2 style={{fontWeight:900,fontSize:17,color:"#111",textTransform:"capitalize"}}>{view}</h2>
           {msg && <div style={{background:"#fef3c7",border:"1.5px solid #f59e0b",color:"#92400e",padding:"7px 14px",borderRadius:8,fontSize:12,fontWeight:700}}>{msg}</div>}
         </div>
-        <div style={{padding:24}}>
+        <div style={{padding:24}} className="admin-content">
 
           {view==="overview" && (
             <div className="fade">
@@ -1100,6 +1140,7 @@ function AdminDashboard(props) {
             </div>
           )}
         </div>
+      </div>
       </div>
 
       {showCreate && <CreateShipmentModal onClose={function(tid){setShowCreate(false);refresh();if(tid)flash("Created: "+tid);}} />}
@@ -2206,7 +2247,7 @@ export default function App() {
       {page==="register"  && <AuthPage mode="register" setPage={setPage} onLogin={setSession} />}
       {page==="dashboard" &&  session  && <UserDashboard session={session} setPage={setPage} setTrackId={setTrackId} />}
       {page==="dashboard" && !session  && <AuthPage mode="login" setPage={setPage} onLogin={setSession} />}
-      {page==="admin"     &&  session && session.role==="admin"  && <AdminDashboard session={session} setPage={setPage} />}
+      {page==="admin"     &&  session && session.role==="admin"  && <AdminDashboard session={session} setPage={setPage} onLogout={logout} />}
       {page==="admin"     && (!session || session.role!=="admin") && <AuthPage mode="login" setPage={setPage} onLogin={setSession} />}
       <SupportChat session={session} />
     </>
