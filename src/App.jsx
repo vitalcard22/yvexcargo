@@ -2003,43 +2003,105 @@ function TermsPage(props) {
 
 function ServicesPage() {
   var svcs = [
-    {icon:"\u2708\uFE0F",name:"Air Freight",      price:"From $45/kg",   time:"1-5 days",   desc:"Priority air cargo for time-sensitive international shipments.",      features:["Priority customs clearance","Temperature-controlled","Door-to-door"]},
-    {icon:"\uD83D\uDEA2",name:"Sea Freight",      price:"From $8/kg",    time:"15-45 days", desc:"Economical ocean shipping for large volume and bulk cargo.",           features:["FCL and LCL options","Container tracking","Marine insurance"]},
-    {icon:"\uD83D\uDE9A",name:"Road Delivery",    price:"From $1.5/kg",  time:"1-7 days",   desc:"Ground transport covering all major cities across continents.",        features:["GPS-tracked vehicles","Proof of delivery","Same-day options"]},
-    {icon:"\u26A1",      name:"Express Courier",  price:"From $35 flat", time:"24-48 hrs",  desc:"Next-business-day delivery guaranteed for urgent parcels.",            features:["Next-day guarantee","SMS updates","Signature confirmation"]},
-    {icon:"\uD83C\uDFED",name:"Warehousing",      price:"From $150/mo",  time:"Flexible",   desc:"Secure, climate-controlled storage with inventory management.",        features:["24/7 security","Inventory system","Pick-and-pack"]},
-    {icon:"\uD83C\uDF0D",name:"International",    price:"Custom quote",  time:"Varies",     desc:"End-to-end logistics with customs brokerage included.",                features:["Customs brokerage","Documentation support","Trade compliance"]},
+    {
+      name:"Air Freight", price:"From $45/kg", time:"1–5 days",
+      desc:"For when it has to be there tomorrow. Priority routing, next-flight-out booking, and customs pre-clearance keep dwell time at cargo terminals to a minimum.",
+      features:["Priority customs clearance","Temperature-controlled holds","Door-to-door collection & delivery"],
+      photo:"1436491865332-7a61a109cc05", seed:"airfreight2",
+    },
+    {
+      name:"Sea Freight", price:"From $8/kg", time:"15–45 days",
+      desc:"The cost-effective choice for large volumes. We handle FCL and LCL bookings across every major trade lane, with marine insurance as standard.",
+      features:["Full and part-container loads","Live vessel & port tracking","Marine insurance included"],
+      photo:"1578575437130-527eed3abbec", seed:"seafreight2",
+    },
+    {
+      name:"Road Delivery", price:"From $1.5/kg", time:"1–7 days",
+      desc:"Cross-border trucking backed by live GPS on every leg. Covers all major corridors across Europe, North America, and Southeast Asia.",
+      features:["GPS tracking on every vehicle","Proof of delivery with signature","Same-day dispatch available"],
+      photo:"1519003722824-194d4455a60c", seed:"roaddelivery2",
+    },
+    {
+      name:"Express Courier", price:"From $35 flat", time:"24–48 hrs",
+      desc:"Documents, samples, and small parcels delivered next business day to over 200 destinations — with SMS updates at every scan.",
+      features:["Next-business-day guarantee","SMS & email notifications","Signature confirmation"],
+      photo:"1595246140625-573b715d11dc", seed:"expresscourier2",
+    },
+    {
+      name:"Warehousing", price:"From $150/mo", time:"Flexible",
+      desc:"Bonded, climate-controlled storage across 40+ hubs worldwide, with inventory management and pick-and-pack handled by our ops team.",
+      features:["24/7 CCTV security","Digital inventory dashboard","Pick-and-pack fulfillment"],
+      photo:"1553413077-190dd305871c", seed:"warehousing2",
+    },
+    {
+      name:"Customs & Compliance", price:"Custom quote", time:"Varies",
+      desc:"End-to-end customs brokerage and trade compliance, so your shipments clear without holds or unexpected duties.",
+      features:["HS code classification","Import & export documentation","Trade compliance review"],
+      photo:"1494412574745-6e39fc09b28d", seed:"customs2",
+    },
   ];
   return (
     <div className="fade">
-      <section style={{background:"#111",padding:"48px 20px",borderBottom:"2px solid #111"}}>
+      <div className="parallax-banner" style={{height:280}}>
+        <Photo id="1494412574745-6e39fc09b28d" seed="serviceshero" alt="Cargo containers at port" w={1600} h={600} className="kb" />
+        <div className="parallax-tint" />
+        <div className="parallax-content" style={{maxWidth:1200,margin:"0 auto"}}>
+          <div className="eyebrow-line"><span>What We Offer</span></div>
+          <h1 style={{color:"#fff",fontSize:36,fontWeight:800,letterSpacing:"-0.02em"}}>Our Services</h1>
+        </div>
+      </div>
+
+      <section style={{padding:"64px 20px 80px",background:"#fff"}}>
         <div style={{maxWidth:1200,margin:"0 auto"}}>
-          <div style={{fontSize:10,fontWeight:700,color:"#f59e0b",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:7}}>What We Offer</div>
-          <h1 style={{color:"#fff",fontSize:40,fontWeight:900,letterSpacing:"-0.03em"}}>Our Services</h1>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:24}}>
+            {svcs.map(function(s){
+              return (
+                <Reveal key={s.name}>
+                  <div style={{border:"1px solid var(--g3)",borderRadius:16,overflow:"hidden",boxShadow:"0 1px 3px rgba(0,0,0,.04)",height:"100%",display:"flex",flexDirection:"column"}}>
+                    <div style={{height:190,overflow:"hidden",position:"relative"}}>
+                      <Photo id={s.photo} seed={s.seed} alt={s.name} w={700} h={400} style={{width:"100%",height:"100%",objectFit:"cover",display:"block",transition:"transform .7s cubic-bezier(.16,1,.3,1)"}}
+                        onMouseEnter={function(e){e.target.style.transform="scale(1.06)";}}
+                        onMouseLeave={function(e){e.target.style.transform="";}} />
+                      <div style={{position:"absolute",inset:0,background:"linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,.55) 100%)"}} />
+                      <div style={{position:"absolute",top:14,right:14,background:"rgba(10,10,11,.75)",backdropFilter:"blur(6px)",color:"#f59e0b",padding:"4px 11px",borderRadius:100,fontSize:10,fontWeight:700,letterSpacing:"0.06em"}}>{s.time}</div>
+                    </div>
+                    <div style={{padding:"20px 22px",flex:1,display:"flex",flexDirection:"column"}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                        <h3 style={{fontWeight:700,fontSize:17,color:"#111"}}>{s.name}</h3>
+                        <span style={{fontWeight:700,fontSize:12,color:"#f59e0b",whiteSpace:"nowrap",paddingLeft:12}}>{s.price}</span>
+                      </div>
+                      <p style={{color:"#525252",fontSize:13,lineHeight:1.7,marginBottom:16,flex:1}}>{s.desc}</p>
+                      <div style={{borderTop:"1px solid var(--g2)",paddingTop:14}}>
+                        {s.features.map(function(f){
+                          return (
+                            <div key={f} style={{display:"flex",gap:10,alignItems:"center",marginBottom:8}}>
+                              <div style={{width:5,height:5,borderRadius:"50%",background:"#f59e0b",flexShrink:0}} />
+                              <span style={{color:"#374141",fontSize:12,lineHeight:1.5}}>{f}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </Reveal>
+              );
+            })}
+          </div>
         </div>
       </section>
-      <section style={{padding:"48px 20px",background:"#fff"}}>
-        <div style={{maxWidth:1200,margin:"0 auto",display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:16}} className="g2">
-          {svcs.map(function(s,i){
-            return (
-              <div key={s.name} style={{border:"2px solid #111",borderRadius:14,padding:20,background:i===0?"#f59e0b":"#fff",transition:"transform .2s"}}
-                onMouseEnter={function(e){e.currentTarget.style.transform="translateY(-3px)";}}
-                onMouseLeave={function(e){e.currentTarget.style.transform="";}} >
-                <div style={{display:"flex",justifyContent:"space-between",marginBottom:11}}>
-                  <div style={{width:44,height:44,background:i===0?"#111":"#fef3c7",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>{s.icon}</div>
-                  <span style={{background:"#111",color:"#f59e0b",padding:"3px 9px",borderRadius:100,fontSize:10,fontWeight:700,height:"fit-content"}}>{s.time}</span>
-                </div>
-                <h3 style={{fontWeight:900,fontSize:15,color:"#111",marginBottom:3}}>{s.name}</h3>
-                <div style={{fontWeight:700,fontSize:12,color:i===0?"#333":"#525252",marginBottom:8}}>{s.price}</div>
-                <p style={{color:i===0?"#333":"#525252",fontSize:12,lineHeight:1.7,marginBottom:11}}>{s.desc}</p>
-                <div style={{borderTop:"2px solid "+(i===0?"#111":"#e5e5e5"),paddingTop:10}}>
-                  {s.features.map(function(f){return <div key={f} style={{display:"flex",gap:7,marginBottom:4}}><span style={{fontWeight:900,fontSize:11}}>v</span><span style={{color:i===0?"#333":"#525252",fontSize:12}}>{f}</span></div>;})}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+
+      <section className="cta-quiet" style={{padding:"64px 20px"}}>
+        <Reveal>
+          <div style={{maxWidth:480,margin:"0 auto",textAlign:"center"}}>
+            <div className="cta-underline" />
+            <h2 style={{color:"#fff",fontSize:28,fontWeight:800,marginBottom:12}}>Need a custom quote?</h2>
+            <p style={{color:"rgba(255,255,255,.55)",fontSize:14,marginBottom:24}}>Talk to our team for high-volume or non-standard shipments.</p>
+            <a href="mailto:support@yvexcargo.com" className="btn btn-y" style={{fontSize:14,padding:"13px 32px",display:"inline-block",textDecoration:"none"}}>Contact Support</a>
+          </div>
+        </Reveal>
       </section>
+
+      <SiteFooter setPage={function(){}} />
     </div>
   );
 }
