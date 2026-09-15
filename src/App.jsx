@@ -281,6 +281,12 @@ tr:last-child td{border-bottom:none;}
   .admin-mobile-link{padding:11px 4px;color:rgba(255,255,255,.6);font-weight:600;font-size:14px;cursor:pointer;}
   .admin-mobile-link.on{color:#f59e0b;font-weight:800;}
   .admin-content{padding:16px!important;}
+  .admin-pipeline{display:none;}
+}
+@media(max-width:700px){
+  .admin-stats{display:flex!important;overflow-x:auto;gap:10px!important;-webkit-overflow-scrolling:touch;margin-bottom:16px!important;}
+  .admin-stat-card{flex:0 0 118px;padding:12px 14px!important;}
+  .admin-stat-card .mono{font-size:22px!important;}
 }
 @media(max-width:640px){
   table{display:block;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;}
@@ -967,11 +973,11 @@ function AdminDashboard(props) {
 
           {view==="overview" && (
             <div className="fade">
-              <div className="g4" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14,marginBottom:22}}>
+              <div className="g4 admin-stats" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14,marginBottom:22}}>
                 {[{l:"Total",v:stats.total,y:true},{l:"In Transit",v:stats.inTransit},{l:"Customs",v:stats.customs},{l:"Delivered",v:stats.delivered}].map(function(c){
                   return (
-                    <div key={c.l} style={{border:"1px solid var(--g3)",borderTop:c.y?"3px solid #f59e0b":"3px solid var(--g3)",borderRadius:12,padding:18,background:"#fff",boxShadow:"0 1px 2px rgba(0,0,0,.03)"}}>
-                      <div style={{fontWeight:800,fontSize:28,color:"#111"}}>{c.v}</div>
+                    <div key={c.l} className="admin-stat-card" style={{border:"1px solid var(--g3)",borderTop:c.y?"3px solid #f59e0b":"3px solid var(--g3)",borderRadius:12,padding:18,background:"#fff",boxShadow:"0 1px 2px rgba(0,0,0,.03)"}}>
+                      <div className="mono" style={{fontWeight:700,fontSize:28,color:"#111",letterSpacing:"-0.02em"}}>{c.v}</div>
                       <div style={{fontSize:10,fontWeight:700,color:"#a3a3a3",textTransform:"uppercase",letterSpacing:"0.07em",marginTop:3}}>{c.l}</div>
                     </div>
                   );
@@ -989,6 +995,12 @@ function AdminDashboard(props) {
               <div className="g2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:18}}>
                 <div style={{border:"1px solid var(--g3)",borderRadius:14,overflow:"hidden",boxShadow:"0 1px 2px rgba(0,0,0,.03)"}}>
                   <div style={{padding:"13px 18px",background:"#fafafa",borderBottom:"1px solid var(--g3)"}}><h3 style={{fontWeight:700,fontSize:13,color:"#111"}}>Recent Shipments</h3></div>
+                  {ships.length===0 ? (
+                    <div style={{padding:"28px 18px",textAlign:"center"}}>
+                      <div style={{color:"#a3a3a3",fontSize:13,fontWeight:600,marginBottom:12}}>No shipments yet</div>
+                      <button className="btn btn-y sm" onClick={function(){setShowCreate(true);}}>+ New Shipment</button>
+                    </div>
+                  ) : (
                   <table>
                     <thead><tr><th>Tracking ID</th><th>Status</th><th>Events</th></tr></thead>
                     <tbody>
@@ -1003,8 +1015,9 @@ function AdminDashboard(props) {
                       })}
                     </tbody>
                   </table>
+                  )}
                 </div>
-                <div style={{border:"1px solid var(--g3)",borderRadius:14,padding:20,background:"#111",boxShadow:"0 1px 2px rgba(0,0,0,.03)"}}>
+                <div className="admin-pipeline" style={{border:"1px solid var(--g3)",borderRadius:14,padding:20,background:"#111",boxShadow:"0 1px 2px rgba(0,0,0,.03)"}}>
                   <div style={{fontSize:11,fontWeight:700,color:"#f59e0b",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:16}}>Pipeline</div>
                   {STATUS_FLOW.map(function(sf){
                     var v=ships.filter(function(s){return s.status===sf.key;}).length;
