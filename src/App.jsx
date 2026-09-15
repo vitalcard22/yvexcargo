@@ -109,9 +109,9 @@ const Auth = {
     DB.saveSession(sess);
     return { session:sess };
   },
-  register: function(name, email, password) {
+  register: function(name, email, password, role) {
     if (DB.findUser(email)) return { error:"Email already registered" };
-    var u = { id:uid(), name:name, email:email, password:hashPw(password), role:"user", active:true, createdAt:new Date().toISOString() };
+    var u = { id:uid(), name:name, email:email, password:hashPw(password), role:role||"user", active:true, createdAt:new Date().toISOString() };
     DB.saveUsers(DB.getUsers().concat([u]));
     return { user:u };
   },
@@ -371,10 +371,7 @@ function Navbar(props) {
               <button className="btn btn-g sm" onClick={onLogout}>Sign Out</button>
             </>
           ) : (
-            <>
-              <span className="nlink" onClick={go("login")}>Sign In</span>
-              <button className="btn btn-y sm" onClick={go("register")}>Get Started</button>
-            </>
+            <span className="nlink" onClick={go("login")}>Sign In</span>
           )}
         </div>
         <button className="nav-burger" aria-label="Menu" onClick={function(){setOpen(!open);}}>
@@ -395,10 +392,7 @@ function Navbar(props) {
               <button className="btn btn-g" style={{width:"100%",justifyContent:"center",marginTop:8}} onClick={function(){setOpen(false);onLogout();}}>Sign Out</button>
             </>
           ) : (
-            <>
-              <div className="nav-mobile-link" onClick={go("login")}>Sign In</div>
-              <button className="btn btn-y" style={{width:"100%",justifyContent:"center",marginTop:8}} onClick={go("register")}>Get Started</button>
-            </>
+            <div className="nav-mobile-link" onClick={go("login")}>Sign In</div>
           )}
         </div>
       )}
@@ -683,6 +677,60 @@ function UpdateStatusModal(props) {
   );
 }
 
+function CreateUserModal(props) {
+  var onClose = props.onClose;
+  var [form,    setForm]    = useState({name:"",email:"",password:"",role:"user"});
+  var [err,     setErr]     = useState("");
+  var [loading, setLoading] = useState(false);
+  var [showPw,  setShowPw]  = useState(false);
+  var emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  function h(k){ return function(e){ setForm(function(f){ var o=Object.assign({},f); o[k]=e.target.value; return o; }); }; }
+
+  function submit() {
+    setErr("");
+    var name = form.name.trim(), email = form.email.trim().toLowerCase();
+    if (!name||!email||!form.password) return setErr("All fields are required.");
+    if (!emailOk.test(email)) return setErr("Enter a valid email address.");
+    if (form.password.length<6) return setErr("Password must be at least 6 characters.");
+    if (DB.findUser(email)) return setErr("Email already registered.");
+    setLoading(true);
+    setTimeout(function(){
+      Auth.register(name, email, form.password, form.role);
+      setLoading(false);
+      onClose(email);
+    }, 300);
+  }
+
+  return (
+    <div className="modal-bg">
+      <div className="mbox" style={{maxWidth:420}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+          <h2 style={{fontWeight:800,fontSize:17,color:"#111"}}>Create User</h2>
+          <button className="btn btn-g sm" onClick={function(){onClose(null);}}>Close</button>
+        </div>
+        <div className="fg"><label className="lbl">Full Name</label><input className="inp" placeholder="Jane Smith" value={form.name} onChange={h("name")} /></div>
+        <div className="fg"><label className="lbl">Email</label><input className="inp" type="email" placeholder="jane@company.com" value={form.email} onChange={h("email")} /></div>
+        <div className="fg">
+          <label className="lbl">Password</label>
+          <div style={{position:"relative"}}>
+            <input className="inp" type={showPw?"text":"password"} placeholder="Min. 6 characters" value={form.password} onChange={h("password")} style={{paddingRight:56}} />
+            <span onClick={function(){setShowPw(!showPw);}} style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",fontSize:11,fontWeight:700,color:"#a3a3a3",cursor:"pointer"}}>{showPw?"Hide":"Show"}</span>
+          </div>
+        </div>
+        <div className="fg">
+          <label className="lbl">Role</label>
+          <select className="inp" value={form.role} onChange={h("role")} style={{background:"#fff"}}>
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        {err && <div style={{background:"#fef2f2",border:"1px solid #fca5a5",color:"#b91c1c",padding:"10px 13px",borderRadius:8,fontSize:12,fontWeight:600,marginBottom:14}}>{err}</div>}
+        <button className="btn btn-y" style={{width:"100%",justifyContent:"center",padding:12}} onClick={submit} disabled={loading}>{loading?"Creating…":"Create User"}</button>
+      </div>
+    </div>
+  );
+}
+
 function CreateShipmentModal(props) {
   var onClose = props.onClose;
   var [step, setStep] = useState(1);
@@ -891,7 +939,8 @@ function AdminDashboard(props) {
   var [view,       setView]       = useState("overview");
   var [ships,      setShips]      = useState(function(){ return DB.getShipments(); });
   var [users,      setUsers]      = useState(function(){ return DB.getUsers(); });
-  var [showCreate, setShowCreate] = useState(false);
+  var [showCreate,     setShowCreate]     = useState(false);
+  var [showCreateUser, setShowCreateUser] = useState(false);
   var [editShipId, setEditShipId] = useState(null);
   var [detailId,   setDetailId]   = useState(null);
   var [msg,        setMsg]        = useState("");
@@ -1077,7 +1126,10 @@ function AdminDashboard(props) {
 
           {view==="users" && (
             <div className="fade">
-              <p style={{color:"#a3a3a3",fontWeight:600,marginBottom:16,fontSize:13}}>{users.filter(function(u){return u.role!=="admin";}).length} registered users</p>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,flexWrap:"wrap",gap:10}}>
+                <p style={{color:"#a3a3a3",fontWeight:600,fontSize:13,margin:0}}>{users.filter(function(u){return u.role!=="admin";}).length} registered users</p>
+                <button className="btn btn-y sm" onClick={function(){setShowCreateUser(true);}}>+ Create User</button>
+              </div>
               <div style={{border:"1px solid var(--g3)",borderRadius:14,overflow:"hidden",boxShadow:"0 1px 2px rgba(0,0,0,.03)"}}>
                 <table>
                   <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th className="hide-sm">Joined</th><th>Actions</th></tr></thead>
@@ -1111,6 +1163,7 @@ function AdminDashboard(props) {
       </div>
 
       {showCreate && <CreateShipmentModal onClose={function(tid){setShowCreate(false);refresh();if(tid)flash("Created: "+tid);}} />}
+      {showCreateUser && <CreateUserModal onClose={function(created){setShowCreateUser(false);refresh();if(created)flash("User created: "+created);}} />}
       {editShip   && <EditShipmentModal   shipment={editShip}   onClose={function(){setEditShipId(null);refresh();flash("Updated.");}} />}
       {detailId   && <ShipmentDetailModal shipmentId={detailId} onClose={function(){setDetailId(null);refresh();}} />}
     </div>
@@ -1385,10 +1438,7 @@ function AuthPage(props) {
             <button className="btn btn-y" style={{width:"100%",justifyContent:"center",padding:13}} onClick={submit} disabled={loading}>{loading?"Please wait…":mode==="login"?"Sign In":"Create Account"}</button>
           </div>
           <p style={{textAlign:"center",color:"#525252",fontSize:13,marginTop:18}}>
-            {mode==="login"?"No account yet?":"Already have an account?"}{" "}
-            <span style={{color:"#111",fontWeight:700,cursor:"pointer",textDecoration:"underline"}} onClick={function(){setErr("");setPage(mode==="login"?"register":"login");}}>
-              {mode==="login"?"Create one":"Sign in"}
-            </span>
+            Need access? <span style={{color:"#a3a3a3",fontSize:12}}>Contact your administrator.</span>
           </p>
         </div>
       </div>
@@ -1535,7 +1585,7 @@ function HomePage(props) {
           <h1 style={{color:"#fff",fontSize:48,fontWeight:800,lineHeight:1.08,letterSpacing:"-0.02em",marginBottom:16,maxWidth:560}}>Your cargo,<br />tracked to the <span style={{color:"#f59e0b"}}>last mile.</span></h1>
           <p style={{color:"rgba(255,255,255,.72)",fontSize:15,lineHeight:1.7,marginBottom:28,maxWidth:420}}>Every location change, customs event and status update — recorded and preserved forever.</p>
           <div style={{display:"flex",gap:12,flexWrap:"wrap",marginBottom:32}}>
-            <button className="btn btn-y" style={{padding:"13px 28px"}} onClick={function(){setPage("register");}}>Create Free Account</button>
+            <button className="btn btn-y" style={{padding:"13px 28px"}} onClick={function(){setPage("track");}}>Track a Shipment</button>
             <button className="btn" style={{padding:"13px 28px",background:"transparent",color:"#fff",border:"1.5px solid rgba(255,255,255,.4)"}} onClick={function(){setPage("track");}}>Track Shipment</button>
           </div>
           <div className="glass-panel">
@@ -1683,7 +1733,7 @@ function HomePage(props) {
             <div className="cta-underline" />
             <h2 style={{color:"#fff",fontSize:32,fontWeight:800,letterSpacing:"-0.02em",marginBottom:12}}>Ready to ship globally?</h2>
             <p style={{color:"rgba(255,255,255,.55)",fontSize:14,marginBottom:26}}>Join thousands of businesses that trust YvexCargo.</p>
-            <button className="btn btn-y" style={{fontSize:14,padding:"13px 36px"}} onClick={function(){setPage("register");}}>Create Free Account</button>
+            <button className="btn btn-y" style={{fontSize:14,padding:"13px 36px"}} onClick={function(){setPage("track");}}>Track a Shipment</button>
           </div>
         </Reveal>
       </section>
@@ -1809,7 +1859,7 @@ function AboutPage(props) {
           <div style={{maxWidth:480,margin:"0 auto",textAlign:"center"}}>
             <div className="cta-underline" />
             <h2 style={{color:"#fff",fontSize:24,fontWeight:800,marginBottom:20}}>Ship with a team that answers before you ask</h2>
-            <button className="btn btn-y" style={{fontSize:14,padding:"13px 32px"}} onClick={function(){props.setPage("register");}}>Create Free Account</button>
+            <button className="btn btn-y" style={{fontSize:14,padding:"13px 32px"}} onClick={function(){props.setPage("track");}}>Track a Shipment</button>
           </div>
         </Reveal>
       </section>
@@ -2156,7 +2206,7 @@ export default function App() {
       {page==="terms"     && <TermsPage     setPage={setPage} />}
       {page==="track"     && <TrackPage     initialId={trackId} />}
       {page==="login"     && <AuthPage mode="login"    setPage={setPage} onLogin={setSession} />}
-      {page==="register"  && <AuthPage mode="register" setPage={setPage} onLogin={setSession} />}
+      {page==="register"  && <AuthPage mode="login"    setPage={setPage} onLogin={setSession} />}
       {page==="dashboard" &&  session  && <UserDashboard session={session} setPage={setPage} setTrackId={setTrackId} />}
       {page==="dashboard" && !session  && <AuthPage mode="login" setPage={setPage} onLogin={setSession} />}
       {page==="admin"     &&  session && session.role==="admin"  && <AdminDashboard session={session} setPage={setPage} onLogout={logout} />}
