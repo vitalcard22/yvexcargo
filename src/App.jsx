@@ -26,98 +26,103 @@ const fmtDate     = d  => d ? new Date(d).toLocaleDateString("en-GB",{day:"numer
 const fmtDT       = d  => new Date(d).toLocaleString("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
 const hashPw      = s  => btoa(encodeURIComponent(s));
 
-const LS = {
-  get: k     => { try { return JSON.parse(localStorage.getItem(k)); } catch(e) { return null; } },
-  set: (k,v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} },
-  del: k     => { try { localStorage.removeItem(k); } catch(e) {} },
-};
+const API_URL = "https://yvexcargo-backend.fly.dev";
 
-const SEED_USERS = [
-  { id:"admin_001", name:"Admin", email:"admin@yvexcargo.com", password:hashPw("qwertyuiop22"), role:"admin", active:true, createdAt:"2024-01-01T00:00:00Z" },
-];
+async function apiFetch(path, opts) {
+  var token = null;
+  try { var s = JSON.parse(localStorage.getItem("yvc_session")); if (s) token = s.token; } catch(e){}
+  var headers = Object.assign({"Content-Type":"application/json"}, opts && opts.headers);
+  if (token) headers["Authorization"] = "Bearer " + token;
+  var res = await fetch(API_URL + path, Object.assign({}, opts, {headers}));
+  var data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Request failed");
+  return data;
+}
 
-function dbInit() {
-  // Always reset the admin user to ensure credentials stay current
-  var users = LS.get("yvc_users") || [];
-  var nonAdmins = users.filter(function(u){ return u.role !== "admin"; });
-  LS.set("yvc_users", [SEED_USERS[0]].concat(nonAdmins));
-  if (!LS.get("yvc_shipments")) LS.set("yvc_shipments", []);
-  // One-time cleanup: remove demo shipments seeded by earlier versions of this app
-  if (!LS.get("yvc_demo_cleared")) {
-    var demoIds = ["YVC-2024-001847", "YVC-2024-003291", "YVC-2024-005512"];
-    var current = LS.get("yvc_shipments") || [];
-    LS.set("yvc_shipments", current.filter(function(s){ return demoIds.indexOf(s.trackingId) === -1; }));
-    LS.set("yvc_demo_cleared", true);
-  }
-}
-function dbGetUsers()       { return LS.get("yvc_users") || []; }
-function dbSaveUsers(a)     { LS.set("yvc_users", a); }
-function dbFindUser(email)  { return (LS.get("yvc_users")||[]).find(function(u){ return u.email===email; }); }
-function dbGetShipments()   { return LS.get("yvc_shipments") || []; }
-function dbSaveShipments(a) { LS.set("yvc_shipments", a); }
-function dbFindShipment(id) { return (LS.get("yvc_shipments")||[]).find(function(s){ return s.id===id; }) || null; }
-function dbFindByTracking(tid) {
-  var upper = tid.toUpperCase();
-  return (LS.get("yvc_shipments")||[]).find(function(s){ return s.trackingId.toUpperCase()===upper; }) || null;
-}
-function dbCreateShipment(ship) { var a=dbGetShipments(); a.push(ship); dbSaveShipments(a); }
-function dbUpdateShipment(id, fields) {
-  dbSaveShipments(dbGetShipments().map(function(s){ return s.id===id ? Object.assign({},s,fields,{updatedAt:new Date().toISOString()}) : s; }));
-}
-function dbDeleteShipment(id) { dbSaveShipments(dbGetShipments().filter(function(s){ return s.id!==id; })); }
-function dbAppendLog(shipmentId, entry) {
-  dbSaveShipments(dbGetShipments().map(function(s){
-    if (s.id!==shipmentId) return s;
-    return Object.assign({},s,{status:entry.status,currentLocation:entry.location,updatedAt:entry.time,logs:(s.logs||[]).concat([entry])});
-  }));
-}
-function dbAddNote(shipmentId, note) {
-  dbSaveShipments(dbGetShipments().map(function(s){
-    return s.id===shipmentId ? Object.assign({},s,{adminNotes:(s.adminNotes||[]).concat([note])}) : s;
-  }));
-}
-function dbUpdateNote(shipmentId, noteId, changes) {
-  dbSaveShipments(dbGetShipments().map(function(s){
-    if (s.id!==shipmentId) return s;
-    return Object.assign({},s,{adminNotes:s.adminNotes.map(function(n){ return n.id===noteId ? Object.assign({},n,changes) : n; })});
-  }));
-}
-function dbDeleteNote(shipmentId, noteId) {
-  dbSaveShipments(dbGetShipments().map(function(s){
-    if (s.id!==shipmentId) return s;
-    return Object.assign({},s,{adminNotes:s.adminNotes.filter(function(n){ return n.id!==noteId; })});
-  }));
-}
-function dbGetSession()   { return LS.get("yvc_session"); }
-function dbSaveSession(s) { LS.set("yvc_session", s); }
-function dbClearSession() { LS.del("yvc_session"); }
+function dbGetSession()   { try { return JSON.parse(localStorage.getItem("yvc_session")); } catch(e){ return null; } }
+function dbSaveSession(s) { try { localStorage.setItem("yvc_session", JSON.stringify(s)); } catch(e){} }
+function dbClearSession() { try { localStorage.removeItem("yvc_session"); } catch(e){} }
 
 const DB = {
-  init:dbInit, getUsers:dbGetUsers, saveUsers:dbSaveUsers, findUser:dbFindUser,
-  getShipments:dbGetShipments, saveShipments:dbSaveShipments, findShipment:dbFindShipment, findByTracking:dbFindByTracking,
-  createShipment:dbCreateShipment, updateShipment:dbUpdateShipment, deleteShipment:dbDeleteShipment,
-  appendLog:dbAppendLog, addNote:dbAddNote, updateNote:dbUpdateNote, deleteNote:dbDeleteNote,
-  getSession:dbGetSession, saveSession:dbSaveSession, clearSession:dbClearSession,
+  init: function(){},
+  getSession: dbGetSession, saveSession: dbSaveSession, clearSession: dbClearSession,
+  // These are kept for synchronous reads of cached data — the real source is the API
+  getShipments: function(){ try{ return JSON.parse(localStorage.getItem("yvc_ships_cache")||"[]"); }catch(e){return[];} },
+  getUsers:     function(){ try{ return JSON.parse(localStorage.getItem("yvc_users_cache")||"[]"); }catch(e){return[];} },
 };
 
 const Auth = {
-  login: function(email, password) {
-    var u = DB.findUser(email);
-    if (!u || u.password !== hashPw(password)) return { error:"Invalid email or password" };
-    if (!u.active) return { error:"Account suspended. Contact support." };
-    var sess = { userId:u.id, role:u.role, name:u.name, email:u.email };
-    DB.saveSession(sess);
-    return { session:sess };
+  login: async function(email, password) {
+    try {
+      var data = await apiFetch("/api/auth/login", {method:"POST", body:JSON.stringify({email, password})});
+      var sess = Object.assign({}, data.user, {token: data.token});
+      dbSaveSession(sess);
+      return { session: {userId:data.user.id, role:data.user.role, name:data.user.name, email:data.user.email, token:data.token} };
+    } catch(e) { return { error: e.message }; }
   },
-  register: function(name, email, password, role) {
-    if (DB.findUser(email)) return { error:"Email already registered" };
-    var u = { id:uid(), name:name, email:email, password:hashPw(password), role:role||"user", active:true, createdAt:new Date().toISOString() };
-    DB.saveUsers(DB.getUsers().concat([u]));
-    return { user:u };
+  register: async function(name, email, password, role) {
+    try {
+      // Admin-only: uses the API with admin token
+      var data = await apiFetch("/api/auth/register", {method:"POST", body:JSON.stringify({name, email, password, role})});
+      return { user: data.user };
+    } catch(e) { return { error: e.message }; }
   },
-  logout:  function() { DB.clearSession(); },
-  current: function() { return DB.getSession(); },
+  logout: function() { dbClearSession(); },
+  current: function() { return dbGetSession(); },
 };
+
+const API = {
+  // Shipments
+  trackShipment: async function(trackingId) {
+    var data = await apiFetch("/api/shipments/track/" + encodeURIComponent(trackingId));
+    return data.shipment;
+  },
+  getShipments: async function() {
+    var data = await apiFetch("/api/shipments");
+    localStorage.setItem("yvc_ships_cache", JSON.stringify(data.shipments));
+    return data.shipments;
+  },
+  createShipment: async function(body) {
+    var data = await apiFetch("/api/shipments", {method:"POST", body:JSON.stringify(body)});
+    return data.shipment;
+  },
+  updateShipment: async function(id, body) {
+    var data = await apiFetch("/api/shipments/" + id, {method:"PATCH", body:JSON.stringify(body)});
+    return data.shipment;
+  },
+  updateStatus: async function(id, body) {
+    var data = await apiFetch("/api/shipments/" + id + "/status", {method:"PATCH", body:JSON.stringify(body)});
+    return data.shipment;
+  },
+  deleteShipment: async function(id) {
+    return apiFetch("/api/shipments/" + id, {method:"DELETE"});
+  },
+  addNote: async function(id, body) {
+    var data = await apiFetch("/api/shipments/" + id + "/notes", {method:"POST", body:JSON.stringify(body)});
+    return data.shipment;
+  },
+  deleteNote: async function(shipId, noteId) {
+    var data = await apiFetch("/api/shipments/" + shipId + "/notes/" + noteId, {method:"DELETE"});
+    return data.shipment;
+  },
+  // Admin users
+  getUsers: async function() {
+    var data = await apiFetch("/api/admin/users");
+    localStorage.setItem("yvc_users_cache", JSON.stringify(data.users));
+    return data.users;
+  },
+  toggleUser: async function(id, active) {
+    var data = await apiFetch("/api/admin/users/" + id, {method:"PATCH", body:JSON.stringify({active})});
+    return data.user;
+  },
+  deleteUser: async function(id) {
+    return apiFetch("/api/admin/users/" + id, {method:"DELETE"});
+  },
+  createUser: async function(name, email, password, role) {
+    return Auth.register(name, email, password, role);
+  },
+};
+
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap');
@@ -541,21 +546,22 @@ function AdminNotesPanel(props) {
   var onUpdate = props.onUpdate;
   var [text, setText]   = useState("");
   var [vis,  setVis]    = useState(false);
-  var [notes, setNotes] = useState(function(){ return DB.findShipment(shipment.id) ? DB.findShipment(shipment.id).adminNotes || [] : []; });
-
-  function refresh() { var s=DB.findShipment(shipment.id); setNotes(s ? s.adminNotes||[] : []); }
+  var [notes, setNotes] = useState(shipment.adminNotes || []);
 
   function addNote() {
     if (!text.trim()) return;
-    DB.addNote(shipment.id, {id:uid(),text:text.trim(),visibleToCustomer:vis,adminName:"Admin",createdAt:new Date().toISOString()});
-    setText(""); setVis(false); refresh(); onUpdate();
+    API.addNote(shipment.id, {text:text.trim(), visibleToCustomer:vis, adminName:"Admin"}).then(function(s){
+      setNotes(s.adminNotes||[]); setText(""); setVis(false); onUpdate(s);
+    });
   }
-  function deleteNote(nid) { DB.deleteNote(shipment.id, nid); refresh(); onUpdate(); }
+  function deleteNote(nid) {
+    API.deleteNote(shipment.id, nid).then(function(s){ setNotes(s.adminNotes||[]); onUpdate(s); });
+  }
   function toggleVis(nid) {
     var n = notes.find(function(x){return x.id===nid;});
     if (!n) return;
-    DB.updateNote(shipment.id, nid, {visibleToCustomer:!n.visibleToCustomer});
-    refresh(); onUpdate();
+    apiFetch("/api/shipments/"+shipment.id+"/notes/"+nid, {method:"PATCH", body:JSON.stringify({visibleToCustomer:!n.visibleToCustomer})})
+      .then(function(d){ setNotes(d.shipment.adminNotes||[]); onUpdate(d.shipment); });
   }
 
   return (
@@ -605,14 +611,13 @@ function UpdateStatusModal(props) {
 
   function save() {
     if (!form.location.trim()) return;
-    DB.appendLog(shipment.id, {
-      id:uid(), status:form.status, location:form.location.trim(),
-      note:form.note.trim()||("Status updated to "+form.status),
-      time:new Date().toISOString(),
-      customsLocation: isCustoms ? form.customsLocation.trim() : undefined,
-      customsNote:     isCustoms ? form.customsNote.trim()     : undefined,
-    });
-    onClose();
+    API.updateStatus(shipment.id, {
+      status: form.status,
+      location: form.location.trim(),
+      note: form.note.trim() || ("Status updated to " + form.status),
+      customsLocation: isCustoms ? form.customsLocation.trim() : "",
+      customsNote:     isCustoms ? form.customsNote.trim()     : "",
+    }).then(function(){ onClose(); }).catch(function(e){ alert(e.message); });
   }
 
   return (
@@ -692,13 +697,11 @@ function CreateUserModal(props) {
     if (!name||!email||!form.password) return setErr("All fields are required.");
     if (!emailOk.test(email)) return setErr("Enter a valid email address.");
     if (form.password.length<6) return setErr("Password must be at least 6 characters.");
-    if (DB.findUser(email)) return setErr("Email already registered.");
     setLoading(true);
-    setTimeout(function(){
-      Auth.register(name, email, form.password, form.role);
-      setLoading(false);
-      onClose(email);
-    }, 300);
+    API.createUser(name, email, form.password, form.role).then(function(r){
+      if (r.error) { setErr(r.error); setLoading(false); return; }
+      setLoading(false); onClose(email);
+    }).catch(function(e){ setErr(e.message); setLoading(false); });
   }
 
   return (
@@ -744,12 +747,14 @@ function CreateShipmentModal(props) {
 
   function create() {
     if (!fs.location.trim()) return;
-    var now = new Date().toISOString();
-    var firstLog = {id:uid(),status:fs.status,location:fs.location.trim(),note:fs.note.trim()||("Shipment "+fs.status.toLowerCase()+"."),time:now};
-    if (isCustoms) { firstLog.customsLocation=fs.customsLocation.trim(); firstLog.customsNote=fs.customsNote.trim(); }
-    var ship = Object.assign({},det,{id:uid(),trackingId:genTracking(),userId:det.assignedUserId||null,status:fs.status,currentLocation:fs.location.trim(),createdAt:now,updatedAt:now,adminNotes:[],logs:[firstLog]});
-    DB.createShipment(ship);
-    onClose(ship.trackingId);
+    API.createShipment({
+      senderName: det.senderName, receiverName: det.receiverName,
+      origin: det.origin, destination: det.destination,
+      service: det.service, weight: det.weight, description: det.description,
+      estimatedDelivery: det.estimatedDelivery || null,
+      status: fs.status,
+      currentLocation: fs.location.trim(),
+    }).then(function(ship){ onClose(ship.trackingId); }).catch(function(e){ alert(e.message); });
   }
 
   return (
@@ -857,8 +862,8 @@ function EditShipmentModal(props) {
   var [form, setForm] = useState(Object.assign({},shipment));
   function h(k){ return function(e){ setForm(function(f){ var o=Object.assign({},f); o[k]=e.target.value; return o; }); }; }
   function save() {
-    DB.updateShipment(form.id, {senderName:form.senderName,receiverName:form.receiverName,origin:form.origin,destination:form.destination,service:form.service,weight:form.weight,description:form.description,estimatedDelivery:form.estimatedDelivery,userId:form.userId||null});
-    onClose();
+    API.updateShipment(form.id, {senderName:form.senderName,receiverName:form.receiverName,origin:form.origin,destination:form.destination,service:form.service,weight:form.weight,description:form.description,estimatedDelivery:form.estimatedDelivery||null})
+      .then(function(){ onClose(); }).catch(function(e){ alert(e.message); });
   }
   return (
     <div className="overlay" onClick={function(e){if(e.target===e.currentTarget)onClose();}}>
@@ -901,10 +906,15 @@ function EditShipmentModal(props) {
 
 function ShipmentDetailModal(props) {
   var shipmentId = props.shipmentId, onClose = props.onClose;
-  var [ship, setShip]         = useState(function(){ return DB.findShipment(shipmentId); });
+  var [ship, setShip] = useState(null);
   var [showUpdate, setShowUpdate] = useState(false);
-  function refresh() { setShip(Object.assign({}, DB.findShipment(shipmentId))); }
-  if (!ship) return null;
+  useEffect(function(){
+    apiFetch("/api/shipments/" + shipmentId).then(function(d){ setShip(d.shipment); }).catch(function(){});
+  }, [shipmentId]);
+  function refresh() {
+    apiFetch("/api/shipments/" + shipmentId).then(function(d){ setShip(d.shipment); }).catch(function(){});
+  }
+  if (!ship) return <div className="overlay"><div className="mbox" style={{textAlign:"center",padding:40,color:"#a3a3a3"}}>Loading…</div></div>;
   return (
     <div className="overlay" onClick={function(e){if(e.target===e.currentTarget)onClose();}}>
       <div className="mbox" style={{maxWidth:700}}>
@@ -926,7 +936,7 @@ function ShipmentDetailModal(props) {
         </div>
         <TrackingTimeline shipment={ship} isAdmin={true} />
         <div style={{borderTop:"2px solid #e5e5e5",marginTop:20,paddingTop:20}}>
-          <AdminNotesPanel shipment={ship} onUpdate={refresh} />
+          <AdminNotesPanel shipment={ship} onUpdate={function(updated){ if(updated && updated.adminNotes) setShip(updated); else refresh(); }} />
         </div>
         {showUpdate && <UpdateStatusModal shipment={ship} onClose={function(){setShowUpdate(false);refresh();}} />}
       </div>
@@ -937,8 +947,9 @@ function ShipmentDetailModal(props) {
 function AdminDashboard(props) {
   var session = props.session, setPage = props.setPage, onLogout = props.onLogout;
   var [view,       setView]       = useState("overview");
-  var [ships,      setShips]      = useState(function(){ return DB.getShipments(); });
-  var [users,      setUsers]      = useState(function(){ return DB.getUsers(); });
+  var [ships,      setShips]      = useState([]);
+  var [users,      setUsers]      = useState([]);
+  var [dataLoading,setDataLoading]= useState(true);
   var [showCreate,     setShowCreate]     = useState(false);
   var [showCreateUser, setShowCreateUser] = useState(false);
   var [editShipId, setEditShipId] = useState(null);
@@ -947,7 +958,13 @@ function AdminDashboard(props) {
   var [search,     setSearch]     = useState("");
   var [mobileNav,  setMobileNav]  = useState(false);
 
-  function refresh() { setShips(DB.getShipments()); setUsers(DB.getUsers()); }
+  function refresh() {
+    setDataLoading(true);
+    Promise.all([API.getShipments(), API.getUsers()]).then(function(res){
+      setShips(res[0]); setUsers(res[1]); setDataLoading(false);
+    }).catch(function(){ setDataLoading(false); });
+  }
+  useEffect(function(){ refresh(); }, []);
   function flash(m)  { setMsg(m); setTimeout(function(){setMsg("");},3000); }
   function goView(v) { return function(){ setView(v); setMobileNav(false); }; }
 
@@ -962,7 +979,7 @@ function AdminDashboard(props) {
     delivered: ships.filter(function(s){return s.status==="Delivered";}).length,
   };
 
-  var editShip = editShipId ? DB.findShipment(editShipId) : null;
+  var editShip = editShipId ? ships.find(function(s){return s.id===editShipId;}) : null;
 
   return (
     <div style={{display:"flex",minHeight:"100vh",flexDirection:"column"}} className="admin-shell">
@@ -1111,7 +1128,7 @@ function AdminDashboard(props) {
                               <div style={{display:"flex",gap:5}}>
                                 <button className="btn btn-g sm" onClick={function(){setDetailId(s.id);}}>View</button>
                                 <button className="btn btn-g sm" onClick={function(){setEditShipId(s.id);}}>Edit</button>
-                                <button className="btn btn-r sm" onClick={function(){DB.deleteShipment(s.id);refresh();flash("Deleted.");}}>Del</button>
+                                <button className="btn btn-r sm" onClick={function(){API.deleteShipment(s.id).then(function(){refresh();flash("Deleted.");});}}>Del</button>
                               </div>
                             </td>
                           </tr>
@@ -1145,8 +1162,8 @@ function AdminDashboard(props) {
                           <td>
                             {u.role!=="admin" && (
                               <div style={{display:"flex",gap:5}}>
-                                <button className="btn btn-g sm" onClick={function(){DB.saveUsers(DB.getUsers().map(function(x){return x.id===u.id?Object.assign({},x,{active:!x.active}):x;}));refresh();flash("Updated.");}}>{u.active?"Block":"Activate"}</button>
-                                <button className="btn btn-r sm" onClick={function(){DB.saveUsers(DB.getUsers().filter(function(x){return x.id!==u.id;}));refresh();flash("Deleted.");}}>Del</button>
+                                <button className="btn btn-g sm" onClick={function(){API.toggleUser(u.id,!u.active).then(function(){refresh();flash("Updated.");});}}>{u.active?"Block":"Activate"}</button>
+                                <button className="btn btn-r sm" onClick={function(){API.deleteUser(u.id).then(function(){refresh();flash("Deleted.");});}}>Del</button>
                               </div>
                             )}
                           </td>
@@ -1268,11 +1285,12 @@ function TrackPage(props) {
   var doTrack = useCallback(function() {
     if (!val.trim()) return;
     setLoading(true); setErr(""); setShip(null);
-    setTimeout(function(){
-      var f = DB.findByTracking(val.trim());
-      if (f) setShip(Object.assign({},f)); else setErr("No shipment found. Double-check the tracking ID and try again.");
+    API.trackShipment(val.trim()).then(function(s){
+      setShip(s); setLoading(false); setSearched(true);
+    }).catch(function(e){
+      setErr(e.message || "No shipment found. Double-check the tracking ID and try again.");
       setLoading(false); setSearched(true);
-    }, 400);
+    });
   }, [val]);
 
   useEffect(function(){ if (initialId) doTrack(); }, [initialId]);
@@ -1377,28 +1395,13 @@ function AuthPage(props) {
   function submit() {
     setErr("");
     var name = form.name.trim(), email = form.email.trim().toLowerCase();
-    if (mode==="register") {
-      if (!name||!email||!form.password) return setErr("All fields are required.");
-      if (!emailOk.test(email)) return setErr("Enter a valid email address.");
-      if (form.password!==form.confirm) return setErr("Passwords do not match.");
-      if (form.password.length<6) return setErr("Password must be at least 6 characters.");
-      setLoading(true);
-      setTimeout(function(){
-        var r = Auth.register(name,email,form.password);
-        if (r.error) { setErr(r.error); setLoading(false); return; }
-        var res = Auth.login(email,form.password);
-        onLogin(res.session); setPage("dashboard");
-      }, 400);
-    } else {
-      if (!email||!form.password) return setErr("Email and password are required.");
-      if (!emailOk.test(email)) return setErr("Enter a valid email address.");
-      setLoading(true);
-      setTimeout(function(){
-        var r = Auth.login(email,form.password);
-        if (r.error) { setErr(r.error); setLoading(false); return; }
-        onLogin(r.session); setPage(r.session.role==="admin"?"admin":"dashboard");
-      }, 400);
-    }
+    if (!email||!form.password) return setErr("Email and password are required.");
+    if (!emailOk.test(email)) return setErr("Enter a valid email address.");
+    setLoading(true);
+    Auth.login(email, form.password).then(function(r){
+      if (r.error) { setErr(r.error); setLoading(false); return; }
+      onLogin(r.session); setPage(r.session.role==="admin"?"admin":"dashboard");
+    }).catch(function(){ setErr("Connection error. Please try again."); setLoading(false); });
   }
 
   return (
@@ -2172,7 +2175,7 @@ function pageFromLocation() {
 }
 
 export default function App() {
-  useEffect(function(){ DB.init(); }, []);
+  useEffect(function(){ }, []);
   var [page,    setPageState] = useState(pageFromLocation);
   var [session, setSession]   = useState(function(){ return DB.getSession(); });
   var [trackId, setTrackId]   = useState("");
