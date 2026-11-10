@@ -317,6 +317,37 @@ tr:last-child td{border-bottom:none;}
   .hero-content p{font-size:13px!important;}
   .stat-strip-item{flex:1 1 100%;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.12);}
 }
+/* ===== Modern logistics admin ===== */
+.adm{background:#f4f6fb;font-family:'Sora',sans-serif;}
+.adm .sidebar.adm-side{background:linear-gradient(180deg,#0b1220 0%,#111a2e 100%);width:240px;min-width:240px;position:sticky;top:0;height:100vh;}
+.adm-sec{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.3);padding:14px 20px 8px;}
+.adm .slink{border-left:none;border-radius:10px;padding:10px 12px;gap:10px;color:rgba(255,255,255,.6);}
+.adm .slink.on{background:linear-gradient(90deg,rgba(245,158,11,.22),rgba(245,158,11,.06));color:#fbbf24;box-shadow:inset 3px 0 0 #f59e0b;}
+.adm-main{flex:1;min-width:0;overflow:auto;background:#f4f6fb;}
+.adm-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:18px 24px;background:rgba(255,255,255,.9);backdrop-filter:blur(8px);border-bottom:1px solid #e6e9f2;position:sticky;top:0;z-index:5;}
+.adm-toast{background:#ecfdf5;border:1px solid #6ee7b7;color:#065f46;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;}
+.adm-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;}
+.adm-kpi{background:#fff;border:1px solid #e6e9f2;border-radius:16px;padding:18px 20px;box-shadow:0 1px 3px rgba(15,23,42,.04);transition:transform .15s,box-shadow .15s;}
+.adm-kpi:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(15,23,42,.08);}
+.adm-kpi-label{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.08em;}
+.adm-kpi-ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.adm-kpi-val{font-family:'Space Mono',monospace;font-size:34px;font-weight:700;color:#0f172a;letter-spacing:-.03em;margin:10px 0 6px;line-height:1;}
+.adm-kpi-sub{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:#64748b;}
+.adm-alert{display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:linear-gradient(90deg,#fdf2f8,#fff);border:1px solid #fbcfe8;border-left:4px solid #ec4899;border-radius:14px;padding:14px 18px;margin-bottom:20px;}
+.adm-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;}
+.adm-card{background:#fff;border:1px solid #e6e9f2;border-radius:16px;padding:20px;box-shadow:0 1px 3px rgba(15,23,42,.04);}
+.adm-card-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.adm-card-h h3{font-size:14px;font-weight:700;color:#0f172a;}
+.adm-card-h span{font-size:11px;font-weight:600;color:#94a3b8;}
+.adm th{background:#f8fafc;color:#64748b;border-bottom:1px solid #eef0f4;}
+.adm td{border-bottom:1px solid #f1f5f9;}
+.adm tr:hover td{background:#f8fafc;}
+.adm .inp{border-radius:10px;border-color:#dfe3ee;background:#fff;}
+.adm .btn{border-radius:10px;}
+@media(max-width:1000px){.adm-kpis{grid-template-columns:repeat(2,1fr);}.adm-grid{grid-template-columns:1fr;}}
+@media(max-width:900px){.adm-head{position:static;}}
+@media(max-width:700px){.adm-kpis{display:grid!important;grid-template-columns:1fr 1fr;overflow:visible!important;}.adm-kpi.admin-stat-card{flex:none;padding:14px!important;}.adm-kpi-val{font-size:26px;}}
+
 `;
 
 function YLogo(props) {
@@ -981,20 +1012,38 @@ function AdminDashboard(props) {
 
   var editShip = editShipId ? ships.find(function(s){return s.id===editShipId;}) : null;
 
+  var pct = function(s){ var i = STATUS_KEYS.indexOf(s.status); return i<0?0:Math.round((i/(STATUS_KEYS.length-1))*100); };
+  var active = ships.length - stats.delivered;
+  var inboundN = ships.filter(function(s){return s.status==="Out for Delivery";}).length;
+  var rate = ships.length ? Math.round((stats.delivered/ships.length)*100) : 0;
+  var kpis = [
+    {l:"Total shipments", v:stats.total, ic:"📦", c:"#f59e0b", sub:active+" active"},
+    {l:"In transit", v:stats.inTransit, ic:"✈️", c:"#3b82f6", sub:inboundN+" out for delivery"},
+    {l:"Customs check", v:stats.customs, ic:"🛃", c:"#ec4899", sub:stats.customs?"needs review":"all clear"},
+    {l:"Delivered", v:stats.delivered, ic:"✅", c:"#10b981", sub:rate+"% delivery rate"}
+  ];
+  var R=52, CIRC=2*Math.PI*R, off=0;
+  var segs = STATUS_FLOW.map(function(sf){
+    var n = ships.filter(function(s){return s.status===sf.key;}).length;
+    var len = ships.length ? (n/ships.length)*CIRC : 0;
+    var seg = {key:sf.key,label:sf.label,n:n,len:len,off:off,c:STATUS_STYLE[sf.key].border};
+    off += len; return seg;
+  });
+  var hour = new Date().getHours();
+  var greet = hour<12?"Good morning":hour<18?"Good afternoon":"Good evening";
+  var navItems = [["overview","Overview","▦"],["shipments","Shipments","📦"],["users","Users","👥"]];
+
   return (
-    <div style={{display:"flex",minHeight:"100vh",flexDirection:"column"}} className="admin-shell">
+    <div className="adm" style={{display:"flex",minHeight:"100vh",flexDirection:"column"}}>
       <div className="admin-topbar">
-        <div style={{display:"flex",alignItems:"center",gap:9}}>
-          <Logo inv={true} />
-          <span style={{fontSize:9,color:"rgba(255,255,255,.35)",fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase"}}>Admin</span>
-        </div>
+        <Logo inv={true} />
         <button className="nav-burger light" aria-label="Menu" onClick={function(){setMobileNav(!mobileNav);}}>
           <span /><span /><span />
         </button>
       </div>
       {mobileNav && (
         <div className="admin-mobile-menu">
-          {[["overview","Overview"],["shipments","Shipments"],["users","Users"]].map(function(item){
+          {navItems.map(function(item){
             return <div key={item[0]} className={"admin-mobile-link "+(view===item[0]?"on":"")} onClick={goView(item[0])}>{item[1]}</div>;
           })}
           <div style={{height:1,background:"rgba(255,255,255,.1)",margin:"8px 0"}} />
@@ -1004,102 +1053,156 @@ function AdminDashboard(props) {
         </div>
       )}
       <div style={{display:"flex",flex:1,minHeight:0}}>
-      <div className="sidebar">
-        <div style={{padding:"20px 16px",borderBottom:"1px solid rgba(255,255,255,.09)"}}>
-          <Logo inv={true} />
-          <div style={{fontSize:9,color:"rgba(255,255,255,.28)",fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:5}}>Admin Panel</div>
-        </div>
-        <div style={{padding:"14px 10px",flex:1}}>
-          {[["overview","Overview"],["shipments","Shipments"],["users","Users"]].map(function(item){
-            return <div key={item[0]} className={"slink "+(view===item[0]?"on":"")} onClick={function(){setView(item[0]);}}>{item[1]}</div>;
-          })}
-          <div style={{borderTop:"1px solid rgba(255,255,255,.08)",marginTop:12,paddingTop:12}}>
-            <div className="slink" onClick={function(){setShowCreate(true);}}>+ New Shipment</div>
-            <div className="slink" onClick={function(){setPage("home");}}>Back to Site</div>
-            {onLogout && <div className="slink" onClick={onLogout}>Sign Out</div>}
-          </div>
-        </div>
-        <div style={{padding:"14px 16px",borderTop:"1px solid rgba(255,255,255,.08)"}}>
-          <div style={{display:"flex",alignItems:"center",gap:9}}>
-            <div style={{width:30,height:30,background:"#f59e0b",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#111",fontSize:12}}>A</div>
-            <div>
-              <div style={{color:"#fff",fontSize:11,fontWeight:700}}>{session.name}</div>
-              <div style={{color:"rgba(255,255,255,.3)",fontSize:9,fontWeight:600,textTransform:"uppercase"}}>Administrator</div>
+        <aside className="sidebar adm-side">
+          <div style={{padding:"22px 18px 18px"}}><Logo inv={true} /></div>
+          <div className="adm-sec">Workspace</div>
+          <nav style={{padding:"0 10px"}}>
+            {navItems.map(function(item){
+              return <div key={item[0]} className={"slink "+(view===item[0]?"on":"")} onClick={function(){setView(item[0]);}}><span style={{width:18,textAlign:"center"}}>{item[2]}</span>{item[1]}</div>;
+            })}
+          </nav>
+          <div className="adm-sec">Quick actions</div>
+          <nav style={{padding:"0 10px",flex:1}}>
+            <div className="slink" onClick={function(){setShowCreate(true);}}><span style={{width:18,textAlign:"center"}}>+</span>New Shipment</div>
+            <div className="slink" onClick={function(){setPage("home");}}><span style={{width:18,textAlign:"center"}}>↗</span>Back to Site</div>
+            {onLogout && <div className="slink" onClick={onLogout}><span style={{width:18,textAlign:"center"}}>⎋</span>Sign Out</div>}
+          </nav>
+          <div style={{padding:"14px 16px",borderTop:"1px solid rgba(255,255,255,.08)",display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:34,height:34,background:"linear-gradient(135deg,#fbbf24,#f59e0b)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#111",fontSize:13}}>{(session.name||"A").charAt(0).toUpperCase()}</div>
+            <div style={{minWidth:0}}>
+              <div style={{color:"#fff",fontSize:12,fontWeight:700,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{session.name}</div>
+              <div style={{color:"rgba(255,255,255,.4)",fontSize:10,fontWeight:600}}>Administrator</div>
             </div>
           </div>
-        </div>
-      </div>
+        </aside>
 
-      <div style={{flex:1,background:"#fff",overflow:"auto"}}>
-        <div style={{borderBottom:"1px solid var(--g3)",padding:"16px 24px",background:"#fff",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
-          <h2 style={{fontWeight:800,fontSize:19,color:"#111",letterSpacing:"-0.01em",textTransform:"capitalize"}}>{view}</h2>
-          {msg && <div style={{background:"var(--yp)",border:"1px solid var(--y)",color:"#92400e",padding:"7px 14px",borderRadius:8,fontSize:12,fontWeight:700}}>{msg}</div>}
-        </div>
-        <div style={{padding:24}} className="admin-content">
+        <main className="adm-main">
+          <div className="adm-head">
+            <div>
+              <h2 style={{fontWeight:800,fontSize:20,color:"#0f172a",letterSpacing:"-0.02em",textTransform:"capitalize"}}>{view}</h2>
+              <div style={{fontSize:12,color:"#64748b",marginTop:2}}>{view==="overview"?greet+", "+(session.name||"Admin")+" — here is your logistics network today.":view==="shipments"?"Search, update and manage every consignment.":"Manage customer accounts and access."}</div>
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              {msg && <div className="adm-toast">{msg}</div>}
+              <button className="btn btn-y sm" onClick={function(){refresh();}} title="Refresh data">{dataLoading?"Loading…":"↻ Refresh"}</button>
+              <button className="btn btn-k sm" onClick={function(){setShowCreate(true);}}>+ New Shipment</button>
+            </div>
+          </div>
+          <div style={{padding:24}} className="admin-content">
 
           {view==="overview" && (
             <div className="fade">
-              <div className="g4 admin-stats" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14,marginBottom:22}}>
-                {[{l:"Total",v:stats.total,y:true},{l:"In Transit",v:stats.inTransit},{l:"Customs",v:stats.customs},{l:"Delivered",v:stats.delivered}].map(function(c){
+              <div className="adm-kpis admin-stats">
+                {kpis.map(function(k){
                   return (
-                    <div key={c.l} className="admin-stat-card" style={{border:"1px solid var(--g3)",borderTop:c.y?"3px solid #f59e0b":"3px solid var(--g3)",borderRadius:12,padding:18,background:"#fff",boxShadow:"0 1px 2px rgba(0,0,0,.03)"}}>
-                      <div className="mono" style={{fontWeight:700,fontSize:28,color:"#111",letterSpacing:"-0.02em"}}>{c.v}</div>
-                      <div style={{fontSize:10,fontWeight:700,color:"#a3a3a3",textTransform:"uppercase",letterSpacing:"0.07em",marginTop:3}}>{c.l}</div>
+                    <div key={k.l} className="adm-kpi admin-stat-card">
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                        <div className="adm-kpi-label">{k.l}</div>
+                        <div className="adm-kpi-ic" style={{background:k.c+"1f",color:k.c}}>{k.ic}</div>
+                      </div>
+                      <div className="adm-kpi-val">{dataLoading?"–":k.v}</div>
+                      <div className="adm-kpi-sub"><span style={{width:7,height:7,borderRadius:"50%",background:k.c,display:"inline-block"}} />{k.sub}</div>
                     </div>
                   );
                 })}
               </div>
+
               {stats.customs>0 && (
-                <div style={{background:"#fff",border:"1px solid var(--g3)",borderLeft:"3px solid #f59e0b",borderRadius:10,padding:"14px 18px",marginBottom:18,display:"flex",gap:12,alignItems:"center",flexWrap:"wrap"}}>
+                <div className="adm-alert">
+                  <span style={{fontSize:20}}>{"🛃"}</span>
                   <div>
-                    <div style={{fontWeight:700,color:"#111",fontSize:14}}>{stats.customs} shipment{stats.customs>1?"s":""} in Customs Check</div>
-                    <div style={{color:"#a3a3a3",fontSize:12,marginTop:2}}>Review and update when clearance confirmed.</div>
+                    <div style={{fontWeight:700,color:"#831843",fontSize:14}}>{stats.customs} shipment{stats.customs>1?"s":""} held in Customs Check</div>
+                    <div style={{color:"#9d174d",fontSize:12,marginTop:2}}>Review and update status once clearance is confirmed.</div>
                   </div>
-                  <button className="btn btn-g sm" style={{marginLeft:"auto"}} onClick={function(){setView("shipments");}}>View</button>
+                  <button className="btn btn-k sm" style={{marginLeft:"auto"}} onClick={function(){setSearch("Customs");setView("shipments");}}>Review</button>
                 </div>
               )}
-              <div className="g2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:18}}>
-                <div style={{border:"1px solid var(--g3)",borderRadius:14,overflow:"hidden",boxShadow:"0 1px 2px rgba(0,0,0,.03)"}}>
-                  <div style={{padding:"13px 18px",background:"#fafafa",borderBottom:"1px solid var(--g3)"}}><h3 style={{fontWeight:700,fontSize:13,color:"#111"}}>Recent Shipments</h3></div>
-                  {ships.length===0 ? (
-                    <div style={{padding:"28px 18px",textAlign:"center"}}>
-                      <div style={{color:"#a3a3a3",fontSize:13,fontWeight:600,marginBottom:12}}>No shipments yet</div>
-                      <button className="btn btn-y sm" onClick={function(){setShowCreate(true);}}>+ New Shipment</button>
+
+              <div className="adm-grid">
+                <div className="adm-card">
+                  <div className="adm-card-h"><h3>Shipment status</h3><span>{ships.length} total</span></div>
+                  <div style={{display:"flex",alignItems:"center",gap:22,flexWrap:"wrap",justifyContent:"center"}}>
+                    <div style={{position:"relative",width:150,height:150}}>
+                      <svg viewBox="0 0 120 120" width="150" height="150" style={{transform:"rotate(-90deg)"}}>
+                        <circle cx="60" cy="60" r={R} fill="none" stroke="#eef0f4" strokeWidth="14" />
+                        {ships.length>0 && segs.map(function(sg){
+                          return sg.n>0 ? <circle key={sg.key} cx="60" cy="60" r={R} fill="none" stroke={sg.c} strokeWidth="14" strokeDasharray={sg.len+" "+(CIRC-sg.len)} strokeDashoffset={-sg.off} /> : null;
+                        })}
+                      </svg>
+                      <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
+                        <div className="mono" style={{fontSize:26,fontWeight:700,color:"#0f172a"}}>{ships.length}</div>
+                        <div style={{fontSize:10,color:"#64748b",fontWeight:700,textTransform:"uppercase",letterSpacing:".08em"}}>Shipments</div>
+                      </div>
                     </div>
-                  ) : (
-                  <table>
-                    <thead><tr><th>Tracking ID</th><th>Status</th><th>Events</th></tr></thead>
-                    <tbody>
-                      {ships.slice(0,5).map(function(s){
+                    <div style={{flex:1,minWidth:150}}>
+                      {segs.map(function(sg){
                         return (
-                          <tr key={s.id} style={{cursor:"pointer"}} onClick={function(){setDetailId(s.id);}}>
-                            <td><span className="mono" style={{background:"var(--yp)",padding:"2px 7px",borderRadius:5,fontSize:10,fontWeight:700}}>{s.trackingId}</span></td>
-                            <td><SBadge status={s.status} /></td>
-                            <td style={{fontSize:11,fontWeight:700,color:"#f59e0b"}}>{(s.logs||[]).length}</td>
-                          </tr>
+                          <div key={sg.key} style={{display:"flex",alignItems:"center",gap:8,fontSize:12,padding:"4px 0"}}>
+                            <span style={{width:10,height:10,borderRadius:3,background:sg.c}} />
+                            <span style={{color:"#334155",fontWeight:600,flex:1}}>{sg.label}</span>
+                            <span className="mono" style={{fontWeight:700,color:"#0f172a"}}>{sg.n}</span>
+                          </div>
                         );
                       })}
-                    </tbody>
-                  </table>
-                  )}
+                    </div>
+                  </div>
                 </div>
-                <div className="admin-pipeline" style={{border:"1px solid var(--g3)",borderRadius:14,padding:20,background:"#111",boxShadow:"0 1px 2px rgba(0,0,0,.03)"}}>
-                  <div style={{fontSize:11,fontWeight:700,color:"#f59e0b",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:16}}>Pipeline</div>
+
+                <div className="adm-card admin-pipeline" style={{display:"block"}}>
+                  <div className="adm-card-h"><h3>Delivery pipeline</h3><span>live</span></div>
                   {STATUS_FLOW.map(function(sf){
                     var v=ships.filter(function(s){return s.status===sf.key;}).length;
+                    var col=STATUS_STYLE[sf.key].border;
                     return (
-                      <div key={sf.key} style={{marginBottom:11}}>
-                        <div style={{display:"flex",justifyContent:"space-between",fontSize:12,fontWeight:700,marginBottom:4}}>
-                          <span style={{color:"#fff"}}>{sf.icon} {sf.label}</span>
-                          <span style={{color:"#f59e0b"}}>{v}</span>
+                      <div key={sf.key} style={{marginBottom:13}}>
+                        <div style={{display:"flex",justifyContent:"space-between",fontSize:12,fontWeight:700,marginBottom:5}}>
+                          <span style={{color:"#334155"}}>{sf.icon} {sf.label}</span>
+                          <span style={{color:"#0f172a"}}>{v}</span>
                         </div>
-                        <div style={{height:4,background:"rgba(255,255,255,.1)",borderRadius:100,overflow:"hidden"}}>
-                          <div style={{height:"100%",background:"#f59e0b",borderRadius:100,width:(ships.length?(v/ships.length)*100:0)+"%"}} />
+                        <div style={{height:7,background:"#eef0f4",borderRadius:100,overflow:"hidden"}}>
+                          <div style={{height:"100%",background:col,borderRadius:100,width:(ships.length?(v/ships.length)*100:0)+"%",transition:"width .6s"}} />
                         </div>
                       </div>
                     );
                   })}
                 </div>
+              </div>
+
+              <div className="adm-card" style={{marginTop:18,padding:0,overflow:"hidden"}}>
+                <div className="adm-card-h" style={{padding:"16px 20px",marginBottom:0,borderBottom:"1px solid #eef0f4"}}>
+                  <h3>Recent shipments</h3>
+                  <button className="btn btn-g sm" onClick={function(){setView("shipments");}}>View all →</button>
+                </div>
+                {ships.length===0 ? (
+                  <div style={{padding:"36px 18px",textAlign:"center"}}>
+                    <div style={{fontSize:34,marginBottom:6}}>{"📦"}</div>
+                    <div style={{color:"#64748b",fontSize:13,fontWeight:600,marginBottom:14}}>{dataLoading?"Loading shipments… (the server may take ~50s to wake up)":"No shipments yet"}</div>
+                    {!dataLoading && <button className="btn btn-y sm" onClick={function(){setShowCreate(true);}}>+ New Shipment</button>}
+                  </div>
+                ) : (
+                  <table>
+                    <thead><tr><th>Tracking ID</th><th>Route</th><th>Status</th><th className="hide-sm">Progress</th><th className="hide-sm">Location</th></tr></thead>
+                    <tbody>
+                      {ships.slice(0,6).map(function(s){
+                        var col=(STATUS_STYLE[s.status]||{}).border||"#94a3b8";
+                        return (
+                          <tr key={s.id} style={{cursor:"pointer"}} onClick={function(){setDetailId(s.id);}}>
+                            <td><span className="mono" style={{background:"#f1f5f9",padding:"3px 8px",borderRadius:6,fontSize:11,fontWeight:700,color:"#0f172a"}}>{s.trackingId}</span></td>
+                            <td style={{fontSize:12}}><div style={{fontWeight:700,color:"#0f172a"}}>{s.senderName}</div><div style={{color:"#94a3b8"}}>{"→ "}{s.receiverName}</div></td>
+                            <td><SBadge status={s.status} /></td>
+                            <td className="hide-sm" style={{minWidth:130}}>
+                              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                                <div style={{flex:1,height:6,background:"#eef0f4",borderRadius:100,overflow:"hidden"}}><div style={{height:"100%",width:pct(s)+"%",background:col,borderRadius:100}} /></div>
+                                <span className="mono" style={{fontSize:10,color:"#64748b"}}>{pct(s)}%</span>
+                              </div>
+                            </td>
+                            <td className="hide-sm" style={{fontSize:12}}>{s.currentLocation||"—"}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </div>
           )}
@@ -1175,8 +1278,8 @@ function AdminDashboard(props) {
               </div>
             </div>
           )}
-        </div>
-      </div>
+          </div>
+        </main>
       </div>
 
       {showCreate && <CreateShipmentModal onClose={function(tid){setShowCreate(false);refresh();if(tid)flash("Created: "+tid);}} />}
